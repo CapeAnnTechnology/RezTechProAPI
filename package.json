@@ -25,7 +25,8 @@
   },
   "apidoc": {
     "title": "REST API for RezTechPro",
-    "url" : "https://github.com/CapeAnnTechnology/RezTechProAPI",
+    "url" : "https://api.reztechpro.com",
+    "version": "1.0.1",
     "options": {
       "excludeFilters": [ "node_modules/", "node_modules" ]
     }
