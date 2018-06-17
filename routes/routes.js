@@ -890,29 +890,55 @@ app.get("/file/:num", function (req, res) {
       venue: venue(venueID),
       userID: userID,
       user: user(userID),
-      createdAt: faker.date.recent(),
+      createdAt: date,
       createdBy: userID,
     });
-    const doc = new PDFDocument()
-    var filename = faker.helpers.slugify(date.toString());
-    // Stripping special characters
-    filename = encodeURIComponent(filename) + '.pdf'
-    // Setting response to 'attachment' (download).
-    // If you use 'inline' here it will automatically open the PDF
-    res.setHeader('Content-disposition', 'inline; filename="' + filename + '"')
-    res.setHeader('Content-type', 'application/pdf')
+    
+    var hummus = require('hummus');
+    // var pdfWriter = hummus.createWriter(new hummus.PDFStreamForResponse(res));
+    var inFilePath = '';
+    
+    var pdfWriter = hummus.createWriterToModify(
+        new hummus.PDFRStreamForFile("./assets/pdfs/fp-buildingsafetychecklist.pdf"),
+        new hummus.PDFStreamForResponse(res)
+    );
 
-    // doc.y = 300
-    doc.text("Timestamp: "+faker.helpers.slugify(date.toString()), 50, 50)
+    var month = date.getUTCMonth() + 1; //months from 1-12
+    var day = date.getUTCDate();
+    var year = date.getUTCFullYear();
 
-    // doc.y = 400
-    doc.text("Venue ID: "+venueID, 50, 70)
+    dateString = month + '/'+day+'/'+year;
 
-    // doc.y = 500
-    doc.text("Venue Name: "+venue(venueID).name, 50, 90)
+    user = user(userID);
 
-    doc.pipe(res)
-    doc.end()
+    crowdManager = user.prefix + ' ' + user.firstName + ' ' + user.lastName + ' ' + user.suffix;
+
+    var pageModifier = new hummus.PDFPageModifier(pdfWriter,0);
+    pageModifier.startContext().getContext().writeText(dateString,
+                268,668,
+                {
+                  font:pdfWriter.getFontForFile('./assets/fonts/arial.ttf'),
+                  size:10,
+                  colorspace:'rgb',
+                  color:0x0000FF
+                }).writeText(crowdManager,
+                185,44,
+                {
+                  font:pdfWriter.getFontForFile('./assets/fonts/arial.ttf'),
+                  size:10,
+                  colorspace:'rgb',
+                  color:0x0000FF
+                });
+    
+    pageModifier.endContext().writePage();
+    pdfWriter.end();
+
+    // pdfWriter.writePage(page);
+    // pdfWriter.end();
+
+
+    res.end();
+
   });
     
 
