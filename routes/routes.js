@@ -42,6 +42,20 @@ function user(num){
   return data;
 }
 
+function file(num){
+  faker.seed(parseInt(num));
+  var data = ({
+    ID: num,
+    fileID: num,
+    fileName: faker.system.commonFileName(),
+    fileType: faker.system.commonFileType(),
+    fileExtension: faker.system.commonFileExt(),
+    createdAt: faker.date.past(),
+    createdBy: faker.random.number(),
+  });
+  return data;
+}
+
 
 var appRouter = function (app) {
 
@@ -407,7 +421,7 @@ var appRouter = function (app) {
   });
 
 /**
- * @api {get} /owns/:id Request Owner
+ * @api {get} /manager/:id Request Owner
  * @apiName GetManagers
  * @apiGroup Managers
  *
@@ -438,8 +452,8 @@ var appRouter = function (app) {
   });
 
 /**
- * @api {get} /manages/:id Request Owner
- * @apiName GetOwns
+ * @api {get} /manages/:id Request Manager Venue
+ * @apiName GetManagerVenue
  * @apiGroup Managers
  *
  * @apiParam {Number} id User unique ID.
@@ -453,9 +467,11 @@ var appRouter = function (app) {
     var num = req.params.num;
     if (isFinite(num) && num  > 0 ) {
      faker.seed(parseInt(num));
+     var venueID = faker.random.number();
      var data = ({
       ID: num,
-      venueID: faker.random.number(),
+      userID: num,
+      venueID: venueID,
       createdAt: faker.date.past(),
       createdBy: faker.random.number(),
     });
@@ -508,7 +524,7 @@ var appRouter = function (app) {
 
 
 /**
- * @api {get} /owns/:id Request Employment Status
+ * @api {get} /employed/:id Request Employment Status
  * @apiName GetEmployment
  * @apiGroup Employees
  *
@@ -538,29 +554,45 @@ app.get("/employed/:num", function (req, res) {
 
 
 /**
+ * @api {get} /files/ Request File List
+ * @apiName GetFiles
+ * @apiGroup Files
+ *
+ * @apiSuccess {String} createdAt Timestamp of User creation.
+ * @apiSuccess {Number} createdBy User ID of generating User.
+ */
+
+app.get("/files/", function (req, res) {
+  var files = [];  
+  var fileCount = faker.random.number() % 20;
+  for (i = 0; i <= fileCount; i++) {
+   files.push(file(faker.random.number()));
+  }
+   var data = ({
+      createdAt: faker.date.past(),
+      files: files,      
+    });
+   res.status(200).send(data);
+ });
+
+/**
  * @api {get} /file/:id Request File Details
  * @apiName GetFile
  * @apiGroup Files
  *
- * @apiParam {Number} id User unique ID.
+ * @apiParam {Number} id File unique ID.
  *
- * @apiSuccess {String} firstname Firstname of the User.
- * @apiSuccess {String} lastname  Lastname of the User.
+ * @apiSuccess {Number} ID ID of the File.
+ * @apiSuccess {Number} fileID ID of the File.
+ * @apiSuccess {String} createdAt Timestamp of File creation.
+ * @apiSuccess {Number} createdBy User ID of generating User.
  */
 
 app.get("/file/:num", function (req, res) {
   var num = req.params.num;
   if (isFinite(num) && num  > 0 ) {
    faker.seed(parseInt(num));
-   var data = ({
-    ID: num,
-    fileID: num,
-    fileName: faker.system.commonFileName(),
-    fileType: faker.system.commonFileType(),
-    fileExtension: faker.system.commonFileExt(),
-    createdAt: faker.date.past(),
-    createdBy: faker.random.number(),
-  });
+   var data = (file(num));
    res.status(200).send(data);
   
  } else {

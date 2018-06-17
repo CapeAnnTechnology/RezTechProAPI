@@ -32,7 +32,7 @@
   },
   "apidoc": {
     "title": "REST API for RezTechPro",
-    "url" : "https://api.reztechpro.com",
+    "url" : "https://reztechpro-api.herokuapp.com",
     "version": "1.0.1",
     "options": {
       "excludeFilters": [ "node_modules/", "node_modules" ]
