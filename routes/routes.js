@@ -100,6 +100,7 @@ var appRouter = function (app) {
 
 /**
  * @api {get} /user/:id Request Users Group
+ * @apiVersion 1.0.1
  * @apiName GetUsersByID
  * @apiGroup Users
  *
@@ -147,6 +148,7 @@ var appRouter = function (app) {
 
 /**
  * @api {get} /user/:id Request User by ID
+ * @apiVersion 1.0.1
  * @apiName GetUserByID
  * @apiGroup Users
  *
@@ -198,6 +200,7 @@ var appRouter = function (app) {
 
 /**
  * @api {get} /business/ Request Business [Random]
+ * @apiVersion 1.0.1
  * @apiName GetBusiness
  * @apiGroup Businesses
  *
@@ -222,6 +225,7 @@ var appRouter = function (app) {
 
 /**
  * @api {get} /business/:id Request Business
+ * @apiVersion 1.0.1
  * @apiName GetBusinessByID
  * @apiGroup Businesses
  *
@@ -257,12 +261,13 @@ var appRouter = function (app) {
   });
 
 /**
- * @api {get} /venue/:id Request Venue
+ * @api {get} /venue/:id Request Venue [Random]
+ * @apiVersion 1.0.1
  * @apiName GetVenue
  * @apiGroup Venues
  *
  * @apiSuccess {Number} ID ID of the Venue.
- * @apiSuccess {Number} addressID ID of the Venue.
+ * @apiSuccess {Number} venueID ID of the Venue.
  * @apiSuccess {String} createdAt Timestamp of User creation.
  * @apiSuccess {Number} createdBy User ID of generating User.
  */
@@ -283,14 +288,15 @@ var appRouter = function (app) {
   });
 
 /**
- * @api {get} /venue/:id Request Venue
+ * @api {get} /venue/:id Request Venue By ID
+ * @apiVersion 1.0.1
  * @apiName GetVenueByID
  * @apiGroup Venues
  *
  * @apiParam {Number} id Venue unique ID.
  *
- * @apiSuccess {Number} ID ID of the Address.
- * @apiSuccess {Number} addressID ID of the Address. 
+ * @apiSuccess {Number} ID ID of the Venue.
+ * @apiSuccess {Number} venueID ID of the Venue. 
  * @apiSuccess {String} createdAt Timestamp of User creation.
  * @apiSuccess {Number} createdBy User ID of generating User.
  */
@@ -320,6 +326,7 @@ var appRouter = function (app) {
 
 /**
  * @api {get} /address/ Request Address [Random]
+ * @apiVersion 1.0.1
  * @apiName GetAddress
  * @apiGroup Addresses
  *
@@ -336,6 +343,7 @@ var appRouter = function (app) {
 
 /**
  * @api {get} /address/:id Request Address by ID
+ * @apiVersion 1.0.1
  * @apiName GetAddressByID
  * @apiGroup Addresses
  *
@@ -360,6 +368,7 @@ var appRouter = function (app) {
 
 /**
  * @api {get} /owner/:id Request Business Owner
+ * @apiVersion 1.0.1
  * @apiName GetOwner
  * @apiGroup Owners
  *
@@ -395,6 +404,7 @@ var appRouter = function (app) {
 
 /**
  * @api {get} /owns/:id Request Users Business
+ * @apiVersion 1.0.1
  * @apiName GetOwns
  * @apiGroup Owners
  *
@@ -422,6 +432,7 @@ var appRouter = function (app) {
 
 /**
  * @api {get} /manager/:id Request Owner
+ * @apiVersion 1.0.1
  * @apiName GetManagers
  * @apiGroup Managers
  *
@@ -453,6 +464,7 @@ var appRouter = function (app) {
 
 /**
  * @api {get} /manages/:id Request Manager Venue
+ * @apiVersion 1.0.1
  * @apiName GetManagerVenue
  * @apiGroup Managers
  *
@@ -484,6 +496,7 @@ var appRouter = function (app) {
 
 /**
  * @api {get} /employees/:id Request Venue Employees
+ * @apiVersion 1.0.1
  * @apiName GetEmployees
  * @apiGroup Employees
  *
@@ -525,6 +538,7 @@ var appRouter = function (app) {
 
 /**
  * @api {get} /employed/:id Request Employment Status
+ * @apiVersion 1.0.1
  * @apiName GetEmployment
  * @apiGroup Employees
  *
@@ -555,6 +569,7 @@ app.get("/employed/:num", function (req, res) {
 
 /**
  * @api {get} /files/ Request File List
+ * @apiVersion 1.0.1
  * @apiName GetFiles
  * @apiGroup Files
  *
@@ -576,8 +591,29 @@ app.get("/files/", function (req, res) {
  });
 
 /**
- * @api {get} /file/:id Request File Details
+ * @api {get} /file/ Request File Details [Random]
+ * @apiVersion 1.0.1
  * @apiName GetFile
+ * @apiGroup Files
+ *
+ * @apiParam {Number} id File unique ID.
+ *
+ * @apiSuccess {Number} ID ID of the File.
+ * @apiSuccess {Number} fileID ID of the File.
+ * @apiSuccess {String} createdAt Timestamp of File creation.
+ * @apiSuccess {Number} createdBy User ID of generating User.
+ */
+
+app.get("/file/", function (req, res) {
+   var fileID = faker.random.number();
+   var data = (file(fileID));
+   res.status(200).send(data);  
+});
+
+/**
+ * @api {get} /file/:id Request File Details By ID
+ * @apiVersion 1.0.1
+ * @apiName GetFileByID
  * @apiGroup Files
  *
  * @apiParam {Number} id File unique ID.
@@ -593,8 +629,7 @@ app.get("/file/:num", function (req, res) {
   if (isFinite(num) && num  > 0 ) {
    faker.seed(parseInt(num));
    var data = (file(num));
-   res.status(200).send(data);
-  
+   res.status(200).send(data);  
  } else {
    res.status(400).send({ message: 'invalid ID supplied' });
  }
@@ -602,6 +637,7 @@ app.get("/file/:num", function (req, res) {
 
 /**
  * @api {get} /logs/ Request Recent Log Entries
+ * @apiVersion 1.0.1
  * @apiName GetLogs
  * @apiGroup Logs
  *
@@ -635,6 +671,7 @@ app.get("/file/:num", function (req, res) {
 
 /**
  * @api {get} /log/:id Request Log Entry By ID
+ * @apiVersion 1.0.1
  * @apiName LogsByID
  * @apiGroup Logs
  *
