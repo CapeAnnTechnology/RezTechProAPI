@@ -2,16 +2,17 @@ var faker = require("faker");
 // removed pdfkit
 // var PDFDocument = require('pdfkit');
 
+var version = '1.1.3';
 faker.seed(42);
 
 var appRouter = function (app) {
 
-  app.get("/", function (req, res) {
-    res.status(200).send({ message: 'Welcome to our restful API' });
+  app.get("/v1.0/", function (req, res) {
+    res.status(200).send({ message: 'Welcome to our restful API', version: version });
   });
 
 /**
- * @api {get} /user/ Request A User [Random]
+ * @api {get} /v1.0/user/ Request A User [Random]
  * @apiVersion 1.0.1
  * @apiName GetUser
  * @apiGroup Users
@@ -27,7 +28,7 @@ var appRouter = function (app) {
  * @apiSuccess {String} createdAt Timestamp of User creation.
  * @apiSuccess {Number} createdBy User ID of generating User.
  */
-  app.get("/user", function (req, res) {
+  app.get("/v1.0/user", function (req, res) {
     var userID = faker.random.number();
     var addressID = faker.random.number();
     var data = ({
@@ -46,7 +47,7 @@ var appRouter = function (app) {
   });
 
 /**
- * @api {get} /user/:id Request Users Group
+ * @api {get} /v1.0/user/:id Request Users Group
  * @apiVersion 1.0.1
  * @apiName GetUsersByID
  * @apiGroup Users
@@ -64,7 +65,7 @@ var appRouter = function (app) {
  * @apiSuccess {String} createdAt Timestamp of User creation.
  * @apiSuccess {Number} createdBy User ID of generating User.
  */
- app.get("/users/:num", function (req, res) {
+ app.get("/v1.0/users/:num", function (req, res) {
    var users = [];
    var num = req.params.num;
    var addressID = faker.random.number();
@@ -94,7 +95,7 @@ var appRouter = function (app) {
  });
 
 /**
- * @api {get} /user/:id Request User by ID
+ * @api {get} /v1.0/user/:id Request User by ID
  * @apiVersion 1.0.1
  * @apiName GetUserByID
  * @apiGroup Users
@@ -112,7 +113,7 @@ var appRouter = function (app) {
  * @apiSuccess {String} createdAt Timestamp of User creation.
  * @apiSuccess {Number} createdBy User ID of generating User.
  */
- app.get("/user/:num", function (req, res) {
+ app.get("/v1.0/user/:num", function (req, res) {
    var users = [];
    var num = req.params.num;
 
@@ -146,7 +147,7 @@ var appRouter = function (app) {
  });
 
 /**
- * @api {get} /business/ Request Business [Random]
+ * @api {get} /v1.0/business/ Request Business [Random]
  * @apiVersion 1.0.1
  * @apiName GetBusiness
  * @apiGroup Businesses
@@ -154,7 +155,7 @@ var appRouter = function (app) {
  * @apiSuccess {String} firstname Firstname of the User.
  * @apiSuccess {String} lastname  Lastname of the User.
  */
-  app.get("/business", function (req, res) {
+  app.get("/v1.0/business", function (req, res) {
     var businessID = faker.random.number();
     var addressID = faker.random.number();
     var data = ({
@@ -171,7 +172,7 @@ var appRouter = function (app) {
   });
 
 /**
- * @api {get} /business/:id Request Business
+ * @api {get} /v1.0/business/:id Request Business
  * @apiVersion 1.0.1
  * @apiName GetBusinessByID
  * @apiGroup Businesses
@@ -181,7 +182,7 @@ var appRouter = function (app) {
  * @apiSuccess {String} createdAt Timestamp of User creation.
  * @apiSuccess {Number} createdBy User ID of generating User.
  */
-  app.get("/business/:num", function (req, res) {
+  app.get("/v1.0/business/:num", function (req, res) {
     var num = req.params.num;
 
     if (isFinite(num) && num  > 0 ) {
@@ -208,7 +209,7 @@ var appRouter = function (app) {
   });
 
 /**
- * @api {get} /venue/:id Request Venue [Random]
+ * @api {get} /v1.0/venue/:id Request Venue [Random]
  * @apiVersion 1.0.1
  * @apiName GetVenue
  * @apiGroup Venues
@@ -218,7 +219,7 @@ var appRouter = function (app) {
  * @apiSuccess {String} createdAt Timestamp of User creation.
  * @apiSuccess {Number} createdBy User ID of generating User.
  */
-  app.get("/venue", function (req, res) {
+  app.get("/v1.0/venue", function (req, res) {
     var venueID = faker.random.number();
     var addressID = faker.random.number();
     var data = ({
@@ -235,7 +236,7 @@ var appRouter = function (app) {
   });
 
 /**
- * @api {get} /venue/:id Request Venue By ID
+ * @api {get} /v1.0/venue/:id Request Venue By ID
  * @apiVersion 1.0.1
  * @apiName GetVenueByID
  * @apiGroup Venues
@@ -247,7 +248,7 @@ var appRouter = function (app) {
  * @apiSuccess {String} createdAt Timestamp of User creation.
  * @apiSuccess {Number} createdBy User ID of generating User.
  */
-  app.get("/venue/:num", function (req, res) {
+  app.get("/v1.0/venue/:num", function (req, res) {
     var num = req.params.num;
 
     if (isFinite(num) && num  > 0 ) {
@@ -272,7 +273,7 @@ var appRouter = function (app) {
   });
 
 /**
- * @api {get} /address/ Request Address [Random]
+ * @api {get} /v1.0/address/ Request Address [Random]
  * @apiVersion 1.0.1
  * @apiName GetAddress
  * @apiGroup Addresses
@@ -282,14 +283,14 @@ var appRouter = function (app) {
  * @apiSuccess {String} createdAt Timestamp of User creation.
  * @apiSuccess {Number} createdBy User ID of generating User.
  */
-  app.get("/address", function (req, res) {
+  app.get("/v1.0/address", function (req, res) {
     var addressID = faker.random.number();
     var data = (address(addressID));
     res.status(200).send(data);
   });
 
 /**
- * @api {get} /address/:id Request Address by ID
+ * @api {get} /v1.0/address/:id Request Address by ID
  * @apiVersion 1.0.1
  * @apiName GetAddressByID
  * @apiGroup Addresses
@@ -301,7 +302,7 @@ var appRouter = function (app) {
  * @apiSuccess {String} createdAt Timestamp of User creation.
  * @apiSuccess {Number} createdBy User ID of generating User.
  */
-  app.get("/address/:num", function (req, res) {
+  app.get("/v1.0/address/:num", function (req, res) {
     var num = req.params.num;
     if (isFinite(num) && num  > 0 ) {
        faker.seed(parseInt(num));
@@ -314,7 +315,7 @@ var appRouter = function (app) {
 
 
 /**
- * @api {get} /owner/:id Request Business Owner
+ * @api {get} /v1.0/owner/:id Request Business Owner
  * @apiVersion 1.0.1
  * @apiName GetOwner
  * @apiGroup Owners
@@ -329,7 +330,7 @@ var appRouter = function (app) {
  * @apiSuccess {Number} createdBy User ID of generating User.
  */
 
-  app.get("/owner/:num", function (req, res) {
+  app.get("/v1.0/owner/:num", function (req, res) {
     var num = req.params.num;
     if (isFinite(num) && num  > 0 ) {
       faker.seed(parseInt(num));
@@ -350,7 +351,7 @@ var appRouter = function (app) {
 
 
 /**
- * @api {get} /owns/:id Request Users Business
+ * @api {get} /v1.0/owns/:id Request Users Business
  * @apiVersion 1.0.1
  * @apiName GetOwns
  * @apiGroup Owners
@@ -360,7 +361,7 @@ var appRouter = function (app) {
  * @apiSuccess {String} firstname Firstname of the User.
  * @apiSuccess {String} lastname  Lastname of the User.
  */
-  app.get("/owns/:num", function (req, res) {
+  app.get("/v1.0/owns/:num", function (req, res) {
     var num = req.params.num;
     if (isFinite(num) && num  > 0 ) {
      faker.seed(parseInt(num));
@@ -378,7 +379,7 @@ var appRouter = function (app) {
   });
 
 /**
- * @api {get} /manager/:id Request Owner
+ * @api {get} /v1.0/manager/:id Request Owner
  * @apiVersion 1.0.1
  * @apiName GetManagers
  * @apiGroup Managers
@@ -392,7 +393,7 @@ var appRouter = function (app) {
  * @apiSuccess {String} createdAt Timestamp of User creation.
  * @apiSuccess {Number} createdBy User ID of generating User.
  */
-  app.get("/manager/:num", function (req, res) {
+  app.get("/v1.0/manager/:num", function (req, res) {
     var num = req.params.num;
     if (isFinite(num) && num  > 0 ) {
      faker.seed(parseInt(num));
@@ -410,7 +411,7 @@ var appRouter = function (app) {
   });
 
 /**
- * @api {get} /manages/:id Request Manager Venue
+ * @api {get} /v1.0/manages/:id Request Manager Venue
  * @apiVersion 1.0.1
  * @apiName GetManagerVenue
  * @apiGroup Managers
@@ -422,7 +423,7 @@ var appRouter = function (app) {
  * @apiSuccess {Number} remaining Remaining capcity of venue.
  * @apiSuccess {String} createdAt Timestamp of User creation.
  */
-  app.get("/manages/:num", function (req, res) {
+  app.get("/v1.0/manages/:num", function (req, res) {
     var num = req.params.num;
     if (isFinite(num) && num  > 0 ) {
      faker.seed(parseInt(num));
@@ -442,7 +443,7 @@ var appRouter = function (app) {
   });
 
 /**
- * @api {get} /employees/:id Request Venue Employees
+ * @api {get} /v1.0/employees/:id Request Venue Employees
  * @apiVersion 1.0.1
  * @apiName GetEmployees
  * @apiGroup Employees
@@ -453,7 +454,7 @@ var appRouter = function (app) {
  * @apiSuccess {String} lastname  Lastname of the User.
  */
 
-  app.get("/employees/:num", function (req, res) {
+  app.get("/v1.0/employees/:num", function (req, res) {
     var num = req.params.num;
     if (isFinite(num) && num  > 0 ) {
      faker.seed(parseInt(num));
@@ -484,7 +485,7 @@ var appRouter = function (app) {
 
 
 /**
- * @api {get} /employed/:id Request Employment Status
+ * @api {get} /v1.0/employed/:id Request Employment Status
  * @apiVersion 1.0.1
  * @apiName GetEmployment
  * @apiGroup Employees
@@ -495,7 +496,7 @@ var appRouter = function (app) {
  * @apiSuccess {String} lastname  Lastname of the User.
  */
 
-app.get("/employed/:num", function (req, res) {
+app.get("/v1.0/employed/:num", function (req, res) {
     var num = req.params.num;
     if (isFinite(num) && num  > 0 ) {
      faker.seed(parseInt(num));
@@ -515,7 +516,7 @@ app.get("/employed/:num", function (req, res) {
 
 
 /**
- * @api {get} /files/ Request File List [Random]
+ * @api {get} /v1.0/files/ Request File List [Random]
  * @apiVersion 1.1.1
  * @apiName GetFiles
  * @apiGroup Files
@@ -524,7 +525,7 @@ app.get("/employed/:num", function (req, res) {
  * @apiSuccess {Object[]} files File Details.
  */
 
-app.get("/files/", function (req, res) {
+app.get("/v1.0/files/", function (req, res) {
   var files = [];  
   var fileCount = faker.random.number() % 20;
   for (i = 0; i <= fileCount; i++) {
@@ -539,7 +540,7 @@ app.get("/files/", function (req, res) {
  });
 
 /**
- * @api {get} /file/ Request File Details [Random]
+ * @api {get} /v1.0/file/ Request File Details [Random]
  * @apiVersion 1.1.1
  * @apiName GetFile
  * @apiGroup Files
@@ -552,14 +553,14 @@ app.get("/files/", function (req, res) {
  * @apiSuccess {Number} createdBy User ID of generating User.
  */
 
-app.get("/file/", function (req, res) {
+app.get("/v1.0/file/", function (req, res) {
    var fileID = faker.random.number();
    var data = (file(fileID));
    res.status(200).send(data);  
 });
 
 /**
- * @api {get} /file/:id Request File Details By ID
+ * @api {get} /v1.0/file/:id Request File Details By ID
  * @apiVersion 1.0.1
  * @apiName GetFileByID
  * @apiGroup Files
@@ -574,7 +575,7 @@ app.get("/file/", function (req, res) {
  * @apiSuccess {Number} createdBy User ID of generating User.
  */
 
-app.get("/file/:num", function (req, res) {
+app.get("/v1.0/file/:num", function (req, res) {
   var num = req.params.num;
   if (isFinite(num) && num  > 0 ) {
    faker.seed(parseInt(num));
@@ -586,7 +587,7 @@ app.get("/file/:num", function (req, res) {
 });
 
 /**
- * @api {get} /logs/ Request Recent Log Entries
+ * @api {get} /v1.0/logs/ Request Recent Log Entries
  * @apiVersion 1.0.1
  * @apiName GetLogs
  * @apiGroup Logs
@@ -595,7 +596,7 @@ app.get("/file/:num", function (req, res) {
  * @apiSuccess {Object[]} logs Log Entry Details.
  */
 
-  app.get("/logs/", function (req, res) {
+  app.get("/v1.0/logs/", function (req, res) {
     var logs = [];
     var num = req.params.num;
     var count = 20;
@@ -620,7 +621,7 @@ app.get("/file/:num", function (req, res) {
   }); 
 
 /**
- * @api {get} /log/:id Request Log Entry By ID
+ * @api {get} /v1.0/log/:id Request Log Entry By ID
  * @apiVersion 1.0.1
  * @apiName LogsByID
  * @apiGroup Logs
@@ -636,7 +637,7 @@ app.get("/file/:num", function (req, res) {
  * @apiSuccess {String} userAgent User Browser Agent Details.
  * @apiSuccess {String} action Action performed by User.
  */
-  app.get("/log/:num", function (req, res) {
+  app.get("/v1.0/log/:num", function (req, res) {
     var num = req.params.num;
     if (isFinite(num) && num  > 0 ) {
      faker.seed(parseInt(num));
@@ -659,7 +660,7 @@ app.get("/file/:num", function (req, res) {
 
 
 /**
- * @api {get} /capacity/:id Request Venue Capacity By ID
+ * @api {get} /v1.0/capacity/:id Request Venue Capacity By ID
  * @apiVersion 1.1.1
  * @apiName GetCapacity
  * @apiGroup Capacities
@@ -674,7 +675,7 @@ app.get("/file/:num", function (req, res) {
  * @apiSuccess {Number} remaining Remaining capcity of venue.
  * @apiSuccess {String} createdAt Timestamp of User creation.
  */
-  app.get("/capacity/:num", function (req, res) {
+  app.get("/v1.0/capacity/:num", function (req, res) {
     var num = req.params.num;
     var capacitySeed = faker.random.number();
     faker.seed(parseInt(num));
@@ -695,7 +696,7 @@ app.get("/file/:num", function (req, res) {
   });
 
 /**
- * @api {get} /checklists/:id Request Checklist By Venue ID
+ * @api {get} /v1.0/checklists/:id Request Checklist By Venue ID
  * @apiVersion 1.1.2
  * @apiName GetChecklistByVenueID
  * @apiGroup Checklists
@@ -711,7 +712,7 @@ app.get("/file/:num", function (req, res) {
  * @apiSuccess {String} createdAt Timestamp of Request.
  * @apiSuccess {Number} createdBy User ID of generating Checklist.
  */
-  app.get("/checklists/:num", function (req, res) {
+  app.get("/v1.0/checklists/:num", function (req, res) {
     var num = req.params.num;
     checklists = [];
     faker.seed(parseInt(num));
@@ -734,7 +735,7 @@ app.get("/file/:num", function (req, res) {
   });
 
 /**
- * @api {get} /checklists/:id/recent/ Request Recent Checklist By Venue ID From Past 7 Days
+ * @api {get} /v1.0/checklists/:id/recent/ Request Recent Checklist By Venue ID From Past 7 Days
  * @apiVersion 1.1.2
  * @apiName GetRecentChecklists
  * @apiGroup Checklists
@@ -752,7 +753,7 @@ app.get("/file/:num", function (req, res) {
  * @apiSuccess {String} createdAt Timestamp of Request.
  * @apiSuccess {Number} createdBy User ID of generating Checklist.
  */
-  app.get("/checklists/:num/recent/", function (req, res) {
+  app.get("/v1.0/checklists/:num/recent/", function (req, res) {
     var num = req.params.num;
     checklists = [];
     faker.seed(parseInt(num));
@@ -780,7 +781,7 @@ app.get("/file/:num", function (req, res) {
   });  
 
   /**
- * @api {get} /checklists/:id/from/:month/:day/:year/to/:month/:day/:year/ Request Recent Checklist By Venue ID And Date Range
+ * @api {get} /v1.0/checklists/:id/from/:month/:day/:year/to/:month/:day/:year/ Request Recent Checklist By Venue ID And Date Range
  * @apiVersion 1.1.2
  * @apiName GetChecklistsDateRange
  * @apiGroup Checklists
@@ -798,7 +799,7 @@ app.get("/file/:num", function (req, res) {
  * @apiSuccess {String} createdAt Timestamp of Request.
  * @apiSuccess {Number} createdBy User ID of generating Checklist.
  */
-  app.get("/checklists/:num/from/:from_month/:from_day/:from_year/to/", function (req, res) {
+  app.get("/v1.0/checklists/:num/from/:from_month/:from_day/:from_year/to/", function (req, res) {
     var num = req.params.num;
     var from_month = req.params.from_month;
     var from_day = req.params.from_day;
@@ -833,7 +834,7 @@ app.get("/file/:num", function (req, res) {
   });  
 
 /**
- * @api {get} /checklist/:id Request Checklist By ID
+ * @api {get} /v1.0/checklist/:id Request Checklist By ID
  * @apiVersion 1.1.2
  * @apiName GetChecklistByID
  * @apiGroup Checklists
@@ -849,7 +850,7 @@ app.get("/file/:num", function (req, res) {
  * @apiSuccess {String} createdAt Timestamp of Checklist.
  * @apiSuccess {Number} createdBy User ID of generating Checklist.
  */
-  app.get("/checklist/:num", function (req, res) {
+  app.get("/v1.0/checklist/:num", function (req, res) {
     var num = req.params.num;
     faker.seed(parseInt(num));
     var venueID = faker.random.number();
@@ -886,7 +887,7 @@ app.get("/file/:num", function (req, res) {
   });
 
 /**
- * @api {get} /checklist/:id/pdf/ Request Checklist PDF By ID
+ * @api {get} /v1.0/checklist/:id/pdf/ Request Checklist PDF By ID
  * @apiVersion 1.1.3
  * @apiName GetChecklistPDFByID
  * @apiGroup Checklists
@@ -895,7 +896,7 @@ app.get("/file/:num", function (req, res) {
  *
  * @apiSuccess {File} PDF
  */
-  app.get("/checklist/:num/pdf/", function (req, res) {
+  app.get("/v1.0/checklist/:num/pdf/", function (req, res) {
     var num = req.params.num;
     faker.seed(parseInt(num));
     var venueID = faker.random.number();
