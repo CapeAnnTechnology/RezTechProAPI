@@ -947,15 +947,15 @@ app.get("/file/:num", function (req, res) {
     var answerFont = ({
             font:pdfWriter.getFontForFile('./assets/fonts/arial.ttf'),
             size:10,
-            colorspace:'rgb',
-            color:0x0000FF
+            colorspace:'gray',
+            color:0x00
           });
 
     var smallFont = ({
             font:pdfWriter.getFontForFile('./assets/fonts/arial.ttf'),
             size:8,
-            colorspace:'rgb',
-            color:0x0000FF
+            colorspace:'gray',
+            color:0x00
           });
 
     
