@@ -2,61 +2,6 @@ var faker = require("faker");
 
 faker.seed(42);
 
-function address(num){
-  faker.seed(parseInt(num));
-  var data = ({
-        ID: num,
-        adddressID: num,
-        streetAddress: faker.address.streetAddress(),
-        secondaryAddress: faker.address.secondaryAddress(),
-        city: faker.address.city(),
-        county: faker.address.county(),
-        state: faker.address.state(),
-        zipCode: faker.address.zipCode(),
-        country: faker.address.country(),
-        phoneNumber: faker.phone.phoneNumber()
-      });
-  return data;
-}
-
-function user(num){
-  faker.seed(parseInt(num));
-  var addressID = faker.random.number();
-  var data = ({
-    ID: num,
-    userID: num,
-    prefix: faker.name.prefix(),      
-    firstName: faker.name.firstName(),
-    lastName: faker.name.lastName(),
-    suffix: faker.name.suffix(),
-    username: faker.internet.userName(),
-    email: faker.internet.email(),
-    password: faker.internet.password(),
-    phoneNumber: faker.phone.phoneNumber(),
-    altPhoneNumber: faker.phone.phoneNumber(),
-    addressID: addressID,
-    address: address(addressID),
-    createdAt: faker.date.past(),
-    createdBy: faker.random.number(),
-  })
-  return data;
-}
-
-function file(num){
-  faker.seed(parseInt(num));
-  var data = ({
-    ID: num,
-    fileID: num,
-    fileName: faker.system.commonFileName(),
-    fileType: faker.system.commonFileType(),
-    fileExtension: faker.system.commonFileExt(),
-    createdAt: faker.date.past(),
-    createdBy: faker.random.number(),
-  });
-  return data;
-}
-
-
 var appRouter = function (app) {
 
   app.get("/", function (req, res) {
@@ -568,13 +513,13 @@ app.get("/employed/:num", function (req, res) {
 
 
 /**
- * @api {get} /files/ Request File List
- * @apiVersion 1.0.1
+ * @api {get} /files/ Request File List [Random]
+ * @apiVersion 1.1.1
  * @apiName GetFiles
  * @apiGroup Files
  *
- * @apiSuccess {String} createdAt Timestamp of User creation.
- * @apiSuccess {Number} createdBy User ID of generating User.
+ * @apiSuccess {String} createdAt Timestamp of List creation.
+ * @apiSuccess {Object[]} files File Details.
  */
 
 app.get("/files/", function (req, res) {
@@ -592,14 +537,14 @@ app.get("/files/", function (req, res) {
 
 /**
  * @api {get} /file/ Request File Details [Random]
- * @apiVersion 1.0.1
+ * @apiVersion 1.1.1
  * @apiName GetFile
  * @apiGroup Files
  *
- * @apiParam {Number} id File unique ID.
- *
  * @apiSuccess {Number} ID ID of the File.
  * @apiSuccess {Number} fileID ID of the File.
+ * @apiSuccess {String} fileExtension Type of File.
+ * @apiSuccess {String} fileType Extension of File.
  * @apiSuccess {String} createdAt Timestamp of File creation.
  * @apiSuccess {Number} createdBy User ID of generating User.
  */
@@ -620,6 +565,8 @@ app.get("/file/", function (req, res) {
  *
  * @apiSuccess {Number} ID ID of the File.
  * @apiSuccess {Number} fileID ID of the File.
+ * @apiSuccess {String} fileExtension Type of File.
+ * @apiSuccess {String} fileType Extension of File.
  * @apiSuccess {String} createdAt Timestamp of File creation.
  * @apiSuccess {Number} createdBy User ID of generating User.
  */
@@ -709,8 +656,8 @@ app.get("/file/:num", function (req, res) {
 
 
 /**
- * @api {get} /capacity/:id Request Venue Capacity
- * @apiVersion 1.0.1
+ * @api {get} /capacity/:id Request Venue Capacity By ID
+ * @apiVersion 1.1.1
  * @apiName GetCapacity
  * @apiGroup Capacities
  *
@@ -718,6 +665,7 @@ app.get("/file/:num", function (req, res) {
  *
  * @apiSuccess {Number} ID ID of the Venue.
  * @apiSuccess {Number} venueID ID of the Venue.
+ * @apiSuccess {Object[]} venue Venue Details.
  * @apiSuccess {Number} maximum Maximum capcity of venue.
  * @apiSuccess {Number} current Current capcity of venue.
  * @apiSuccess {Number} remaining Remaining capcity of venue.
@@ -733,6 +681,7 @@ app.get("/file/:num", function (req, res) {
     var data = ({
       ID: num,
       venueID: num,
+      venue: venue(num),
       maximum: maximum,
       current: current,
       remaining: maximum - current,
@@ -742,6 +691,120 @@ app.get("/file/:num", function (req, res) {
     res.status(200).send(data);
   });
 
+/**
+ * @api {get} /checklist/:id Request Checklist By ID
+ * @apiVersion 1.1.2
+ * @apiName GetChecklistByID
+ * @apiGroup Checklists
+ *
+ * @apiParam {Number} id Checklist unique ID. 
+ *
+ * @apiSuccess {Number} ID ID of the Checklist.
+ * @apiSuccess {Number} checklistID ID of the Checklist.
+ * @apiSuccess {Number} venueID ID of the Venue.
+ * @apiSuccess {Object[]} venue Venue Details.
+ * @apiSuccess {Number} userID ID of the User.
+ * @apiSuccess {Object[]} user  User details.
+ * @apiSuccess {String} createdAt Timestamp of Checklist.
+ * @apiSuccess {Number} createdBy User ID of generating Checklist.
+ */
+  app.get("/checklist/:num", function (req, res) {
+    var num = req.params.num;
+    faker.seed(parseInt(num));
+    var venueID = faker.random.number();
+    var userID = faker.random.number();
+    var data = ({
+      ID: num,
+      checklistID: num,
+      venueID: venueID,
+      venue: venue(venueID),
+      userID: userID,
+      user: user(userID),
+      createdAt: faker.date.recent(),
+      createdBy: userID,
+    });
+    res.status(200).send(data);
+  });
+
+
 } // end appRouter;
 
+
+/*****
+*
+* Static Functions
+*
+*****/
+
+function address(num){
+  faker.seed(parseInt(num));
+  var data = ({
+        ID: num,
+        adddressID: num,
+        streetAddress: faker.address.streetAddress(),
+        secondaryAddress: faker.address.secondaryAddress(),
+        city: faker.address.city(),
+        county: faker.address.county(),
+        state: faker.address.state(),
+        zipCode: faker.address.zipCode(),
+        country: faker.address.country(),
+        phoneNumber: faker.phone.phoneNumber()
+      });
+  return data;
+}
+
+function user(num){
+  faker.seed(parseInt(num));
+  var addressID = faker.random.number();
+  var data = ({
+    ID: num,
+    userID: num,
+    prefix: faker.name.prefix(),      
+    firstName: faker.name.firstName(),
+    lastName: faker.name.lastName(),
+    suffix: faker.name.suffix(),
+    username: faker.internet.userName(),
+    email: faker.internet.email(),
+    password: faker.internet.password(),
+    phoneNumber: faker.phone.phoneNumber(),
+    altPhoneNumber: faker.phone.phoneNumber(),
+    addressID: addressID,
+    address: address(addressID),
+    createdAt: faker.date.past(),
+    createdBy: faker.random.number(),
+  })
+  return data;
+}
+
+function file(num){
+  faker.seed(parseInt(num));
+  var data = ({
+    ID: num,
+    fileID: num,
+    fileName: faker.system.commonFileName(),
+    fileType: faker.system.commonFileType(),
+    fileExtension: faker.system.commonFileExt(),
+    createdAt: faker.date.past(),
+    createdBy: faker.random.number(),
+  });
+  return data;
+}
+
+function venue(num){
+  faker.seed(parseInt(num));
+  var addressID = faker.random.number();
+  var data = ({
+    ID: num,
+    venueID: num,
+    name: faker.company.companyName(),
+    email: faker.internet.email(),
+    addressID: addressID,
+    address: address(addressID),
+    createdAt: faker.date.past(),
+    createdBy: faker.random.number(),
+  });
+  return data;
+}
+
 module.exports = appRouter;
+

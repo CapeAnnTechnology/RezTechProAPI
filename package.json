@@ -1,6 +1,6 @@
 {
   "name": "reztechproapi",
-  "version": "1.0.1",
+  "version": "1.1.2",
   "description": "REST API for RezTechPro",
   "main": "app.js",
   "engines": {
@@ -33,9 +33,9 @@
   "apidoc": {
     "title": "REST API for RezTechPro",
     "url" : "https://reztechpro-api.herokuapp.com",
-    "version": "1.0.1",
+    "version": "1.1.2",
     "options": {
-      "excludeFilters": [ "node_modules/", "node_modules" ]
+      "excludeFilters": [ "node_modules/", "node_modules", "doc", "doc/" ]
     }
   }
 }
