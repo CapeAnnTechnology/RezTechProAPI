@@ -55,7 +55,6 @@ var appRouter = function (app) {
  * @apiName GetUser
  * @apiGroup Users
  *
- *
  * @apiSuccess {Number} ID ID of the User.
  * @apiSuccess {Number} userID ID of the User.
  * @apiSuccess {String} firstname Firstname of the User.
@@ -86,7 +85,7 @@ var appRouter = function (app) {
   });
 
 /**
- * @api {get} /user/:id Request Users
+ * @api {get} /user/:id Request Users Group
  * @apiName GetUsersByID
  * @apiGroup Users
  *
@@ -133,7 +132,7 @@ var appRouter = function (app) {
  });
 
 /**
- * @api {get} /user/:id Request User
+ * @api {get} /user/:id Request User by ID
  * @apiName GetUserByID
  * @apiGroup Users
  *
@@ -184,11 +183,9 @@ var appRouter = function (app) {
  });
 
 /**
- * @api {get} /business/:id Request Business
+ * @api {get} /business/ Request Business [Random]
  * @apiName GetBusiness
  * @apiGroup Businesses
- *
- * @apiParam {Number} id Business unique ID.
  *
  * @apiSuccess {String} firstname Firstname of the User.
  * @apiSuccess {String} lastname  Lastname of the User.
@@ -563,18 +560,16 @@ app.get("/file/:num", function (req, res) {
  * @apiName GetLogs
  * @apiGroup Logs
  *
- * @apiParam {Number} id User unique ID.
- *
- * @apiSuccess {String} firstname Firstname of the User.
- * @apiSuccess {String} lastname  Lastname of the User.
+ * @apiSuccess {String} createdAt Timestamp of User creation.
+ * @apiSuccess {Object[]} logs Log Entry Details.
  */
 
   app.get("/logs/", function (req, res) {
-    var data = [];
+    var logs = [];
     var num = req.params.num;
     var count = 20;
      for (i = 0; i <= count; i++) {
-       data.push({
+       logs.push({
         ID: num,
         logID: num,
         createdAt: faker.date.past(),
@@ -586,6 +581,10 @@ app.get("/file/:num", function (req, res) {
 
       });
      }
+     var data = ({
+      createdAt: faker.date.past(),
+      logs: logs,      
+    });
      res.status(200).send(data);    
   }); 
 
@@ -596,8 +595,14 @@ app.get("/file/:num", function (req, res) {
  *
  * @apiParam {Number} id Log unique ID.
  *
- * @apiSuccess {String} firstname Firstname of the User.
- * @apiSuccess {String} lastname  Lastname of the User.
+ * @apiSuccess {Number} ID ID of the Log Entry.
+ * @apiSuccess {Number} logID ID of the Log Entry.
+ * @apiSuccess {String} createdAt Timestamp of User creation.
+ * @apiSuccess {Number} createdBy User ID of generating User.
+ * @apiSuccess {String} ipAddress IP Address of User.
+ * @apiSuccess {String} referrer Referrering URL.
+ * @apiSuccess {String} userAgent User Browser Agent Details.
+ * @apiSuccess {String} action Action performed by User.
  */
   app.get("/log/:num", function (req, res) {
     var num = req.params.num;
@@ -608,7 +613,7 @@ app.get("/file/:num", function (req, res) {
       logID: num,
       createdAt: faker.date.past(),
       createdBy: faker.random.number(),
-      idAddress: faker.internet.ip(),
+      ipAddress: faker.internet.ip(),
       referrer: faker.internet.url(),
       userAgent: faker.internet.userAgent(),
       action: faker.hacker.ingverb(),
@@ -627,6 +632,7 @@ app.get("/file/:num", function (req, res) {
  * @apiName GetCapacity
  * @apiGroup Capacities
  *
+ * @apiParam {Number} id Venue unique ID. 
  *
  * @apiSuccess {Number} ID ID of the Venue.
  * @apiSuccess {Number} venueID ID of the Venue.
