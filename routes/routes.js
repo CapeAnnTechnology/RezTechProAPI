@@ -909,9 +909,9 @@ app.get("/file/:num", function (req, res) {
 
     dateString = month + '/'+day+'/'+year;
 
-    user = user(userID);
+    userDetails = user(userID);
 
-    crowdManager = user.prefix + ' ' + user.firstName + ' ' + user.lastName + ' ' + user.suffix;
+    crowdManager = userDetails.prefix + ' ' + userDetails.firstName + ' ' + userDetails.lastName + ' ' + userDetails.suffix;
 
     var pageModifier = new hummus.PDFPageModifier(pdfWriter,0);
     pageModifier.startContext().getContext().writeText(dateString,
