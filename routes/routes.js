@@ -56,8 +56,16 @@ var appRouter = function (app) {
  * @apiGroup User
  *
  *
+ * @apiSuccess {Number} ID ID of the User.
+ * @apiSuccess {Number} userID ID of the User.
  * @apiSuccess {String} firstname Firstname of the User.
  * @apiSuccess {String} lastname  Lastname of the User.
+ * @apiSuccess {String} username Username of the User.
+ * @apiSuccess {String} email Email of the User.
+ * @apiSuccess {Number} addressID Address ID of the User.
+ * @apiSuccess {Object[]} address  Address of the User.
+ * @apiSuccess {String} createdAt Timestamp of User creation.
+ * @apiSuccess {Number} createdBy User ID of generating User.
  */
   app.get("/user", function (req, res) {
     var userID = faker.random.number();
@@ -84,8 +92,16 @@ var appRouter = function (app) {
  *
  * @apiParam {Number} id Users unique ID.
  *
+ * @apiSuccess {Number} ID ID of the User.
+ * @apiSuccess {Number} userID ID of the User.
  * @apiSuccess {String} firstname Firstname of the User.
  * @apiSuccess {String} lastname  Lastname of the User.
+ * @apiSuccess {String} username Username of the User.
+ * @apiSuccess {String} email Email of the User.
+ * @apiSuccess {Number} addressID Address ID of the User.
+ * @apiSuccess {Object[]} address  Address of the User.
+ * @apiSuccess {String} createdAt Timestamp of User creation.
+ * @apiSuccess {Number} createdBy User ID of generating User.
  */
  app.get("/users/:num", function (req, res) {
    var users = [];
@@ -123,8 +139,16 @@ var appRouter = function (app) {
  *
  * @apiParam {Number} id Users unique ID.
  *
+ * @apiSuccess {Number} ID ID of the User.
+ * @apiSuccess {Number} userID ID of the User.
  * @apiSuccess {String} firstname Firstname of the User.
  * @apiSuccess {String} lastname  Lastname of the User.
+ * @apiSuccess {String} username Username of the User.
+ * @apiSuccess {String} email Email of the User.
+ * @apiSuccess {Number} addressID Address ID of the User.
+ * @apiSuccess {Object[]} address  Address of the User.
+ * @apiSuccess {String} createdAt Timestamp of User creation.
+ * @apiSuccess {Number} createdBy User ID of generating User.
  */
  app.get("/user/:num", function (req, res) {
    var users = [];
