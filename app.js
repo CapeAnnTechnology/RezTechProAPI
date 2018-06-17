@@ -12,6 +12,8 @@ var version = '2.0.1';
 // var legacy = express.Router();
 // var current = express.Router();
 
+app.use(allowCrossDomain);
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
