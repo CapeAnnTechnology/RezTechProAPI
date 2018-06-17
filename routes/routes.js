@@ -983,6 +983,16 @@ app.get("/file/:num", function (req, res) {
           185,44,
           answerFont)
       .writeText(
+          data.user.certificate.number,
+          500,44,
+          smallFont)
+      .writeText(
+          'Expires: '+(data.user.certificate.expiresAt.getUTCMonth() + 1) + '/' +
+          data.user.certificate.expiresAt.getUTCDate()+'/'+
+          data.user.certificate.expiresAt.getUTCFullYear(),
+          500,33,
+          verySmallFont)
+      .writeText(
           (data.questions[q].answer)?'X':'',
           x1,600,
           answerFont)
@@ -1131,6 +1141,12 @@ app.get("/file/:num", function (req, res) {
           x2,145,
           answerFont)
       .writeText(
+          (data.questions[q].date.getUTCMonth() + 1) + '/' +
+          data.questions[q].date.getUTCDate()+'/'+
+          data.questions[q].date.getUTCFullYear(),
+          280,140,
+          smallFont)
+      .writeText(
           (data.questions[++q].answer)?'X':'',
           x1,105,
           answerFont)
@@ -1139,24 +1155,27 @@ app.get("/file/:num", function (req, res) {
           x2,105,
           answerFont)
       .writeText(
+          (data.questions[q].date.getUTCMonth() + 1) + '/' +
+          data.questions[q].date.getUTCDate()+'/'+
+          data.questions[q].date.getUTCFullYear(),
+          170,103,
+          smallFont)
+      .writeText(
           'Document Prepared By: RezTechPro.com',
-          100,15,
+          110,15,
           verySmallFont)
       .writeText(
           'Document ID#: '+data.ID,
           230,15,
-          verySmallFont)
-      
+          verySmallFont)      
       .writeText(
           data.createdAt,
-          290,15,
+          310,15,
           verySmallFont)
       .writeText(
           data.ipAddress,
-          430,15,
+          460,15,
           verySmallFont)
-
-
     ; // end writeText
 
     console.log((data.questions[0].answer)?'X':'0');
@@ -1219,6 +1238,7 @@ function user(num){
     username: faker.internet.userName(),
     email: faker.internet.email(),
     password: faker.internet.password(),
+    certificate: certificate(num),
     phoneNumber: faker.phone.phoneNumber(),
     altPhoneNumber: faker.phone.phoneNumber(),
     addressID: addressID,
@@ -1226,6 +1246,20 @@ function user(num){
     createdAt: faker.date.past(),
     createdBy: faker.random.number(),
   })
+  return data;
+}
+
+function certificate(num){
+  faker.seed(parseInt(num));
+  var certificateID = faker.random.number()
+  var data = ({
+    ID: certificateID,
+    certificateID: certificateID,
+    number: faker.random.alphaNumeric(15),
+    expiresAt: faker.date.future(),
+    createdAt: faker.date.past(),
+    createdBy: faker.random.number(),
+  });
   return data;
 }
 
