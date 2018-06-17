@@ -951,7 +951,7 @@ app.get("/v2.0/file/:num", function (req, res) {
     var inFilePath = '';
     
     var pdfWriter = hummus.createWriterToModify(
-        new hummus.PDFRStreamForFile("./assets/pdfs/fp-buildingsafetychecklist.pdf"),
+        new hummus.PDFRStreamForFile("./v2.0/assets/pdfs/fp-buildingsafetychecklist.pdf"),
         new hummus.PDFStreamForResponse(res)
     );
 
@@ -960,21 +960,21 @@ app.get("/v2.0/file/:num", function (req, res) {
     var x2 = 540;
     var q = 0;
     var answerFont = ({
-            font:pdfWriter.getFontForFile('./assets/fonts/arial.ttf'),
+            font:pdfWriter.getFontForFile('./v2.0/assets/fonts/arial.ttf'),
             size:10,
             colorspace:'gray',
             color:0x00
           });
 
     var smallFont = ({
-            font:pdfWriter.getFontForFile('./assets/fonts/arial.ttf'),
+            font:pdfWriter.getFontForFile('./v2.0/assets/fonts/arial.ttf'),
             size:8,
             colorspace:'gray',
             color:0x00
           });
 
     var verySmallFont = ({
-            font:pdfWriter.getFontForFile('./assets/fonts/arial.ttf'),
+            font:pdfWriter.getFontForFile('./v2.0/assets/fonts/arial.ttf'),
             size:6,
             colorspace:'gray',
             color:0x00
