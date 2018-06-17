@@ -12,9 +12,5 @@ var server = app.listen(3000, function () {
     console.log("app running on port.", server.address().port);
 });
 
-/***
-References:
-
-https://www.codementor.io/wapjude/creating-a-simple-rest-api-with-expressjs-in-5min-bbtmk51mq
-
-**/
+// References:
+// https://www.codementor.io/wapjude/creating-a-simple-rest-api-with-expressjs-in-5min-bbtmk51mq

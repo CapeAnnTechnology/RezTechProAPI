@@ -17,8 +17,17 @@
   },
   "homepage": "https://github.com/CapeAnnTechnology/RezTechProAPI#readme",
   "dependencies": {
+    "apidoc": "^0.17.6",
     "body-parser": "^1.18.3",
     "express": "^4.16.3",
-    "faker": "^4.1.0"
+    "faker": "^4.1.0",
+    "nodemon": "^1.17.5"
+  },
+  "apidoc": {
+    "title": "REST API for RezTechPro",
+    "url" : "https://github.com/CapeAnnTechnology/RezTechProAPI",
+    "options": {
+      "excludeFilters": [ "node_modules/", "node_modules" ]
+    }
   }
 }
