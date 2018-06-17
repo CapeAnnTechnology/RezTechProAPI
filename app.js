@@ -8,8 +8,10 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 routes(app);
 
-var server = app.listen(3000, function () {
-    console.log("app running on port.", server.address().port);
+// Initialize the app.
+var server = app.listen(process.env.PORT || 8080, function () {
+  var port = server.address().port;
+  console.log("App now running on port", port);
 });
 
 // References:
