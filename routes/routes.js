@@ -927,6 +927,8 @@ app.get("/file/:num", function (req, res) {
       userID: userID,
       user: user(userID),
       questions: questions,
+      ipAddress: faker.internet.ip(),
+      userAgent: faker.internet.userAgent(),
       createdAt: date,
       createdBy: userID,
     });
@@ -954,6 +956,13 @@ app.get("/file/:num", function (req, res) {
     var smallFont = ({
             font:pdfWriter.getFontForFile('./assets/fonts/arial.ttf'),
             size:8,
+            colorspace:'gray',
+            color:0x00
+          });
+
+    var verySmallFont = ({
+            font:pdfWriter.getFontForFile('./assets/fonts/arial.ttf'),
+            size:6,
             colorspace:'gray',
             color:0x00
           });
@@ -1129,6 +1138,18 @@ app.get("/file/:num", function (req, res) {
           (!data.questions[q].answer)?'X':'',
           x2,105,
           answerFont)
+      .writeText(
+          'Document Prepared By: RezTechPro.com',
+          100,15,
+          verySmallFont)
+      .writeText(
+          data.createdAt,
+          260,15,
+          verySmallFont)
+      .writeText(
+          data.ipAddress,
+          430,15,
+          verySmallFont)
 
 
     ; // end writeText
@@ -1238,8 +1259,8 @@ function checklist(num){
   var data = ({
     ID: num,
     fileID: num,
-    
-
+    ipAddress: faker.internet.ip(),
+    userAgent: faker.internet.userAgent(),
     createdAt: faker.date.past(),
     createdBy: faker.random.number(),
   });
