@@ -613,6 +613,40 @@ app.get("/file/:num", function (req, res) {
    }
   });  
 
+
+/**
+ * @api {get} /capacity/:id Request Venue Capacity
+ * @apiVersion 1.0.1
+ * @apiName GetCapacity
+ * @apiGroup Capacity
+ *
+ *
+ * @apiSuccess {Number} ID ID of the Venue.
+ * @apiSuccess {Number} venueID ID of the Venue.
+ * @apiSuccess {Number} maximum Maximum capcity of venue.
+ * @apiSuccess {Number} current Current capcity of venue.
+ * @apiSuccess {Number} remaining Remaining capcity of venue.
+ * @apiSuccess {String} createdAt Timestamp of User creation.
+ */
+  app.get("/capacity/:num", function (req, res) {
+    var num = req.params.num;
+    var capacitySeed = faker.random.number();
+    faker.seed(parseInt(num));
+    var maximum = faker.random.number() % 200;
+    faker.seed(capacitySeed);
+    var current = faker.random.number() % maximum;
+    var data = ({
+      ID: num,
+      venueID: num,
+      maximum: maximum,
+      current: current,
+      remaining: maximum - current,
+      createdAt: faker.date.recent(),
+      createdBy: -1,
+    });
+    res.status(200).send(data);
+  });
+
 } // end appRouter;
 
 module.exports = appRouter;
