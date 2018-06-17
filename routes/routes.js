@@ -50,10 +50,10 @@ var appRouter = function (app) {
   });
 
 /**
- * @api {get} /user/ Request A User information
+ * @api {get} /user/ Request A User [Random]
  * @apiVersion 1.0.1
  * @apiName GetUser
- * @apiGroup User
+ * @apiGroup Users
  *
  *
  * @apiSuccess {Number} ID ID of the User.
@@ -86,9 +86,9 @@ var appRouter = function (app) {
   });
 
 /**
- * @api {get} /user/:id Request Users information
+ * @api {get} /user/:id Request Users
  * @apiName GetUsersByID
- * @apiGroup User
+ * @apiGroup Users
  *
  * @apiParam {Number} id Users unique ID.
  *
@@ -133,9 +133,9 @@ var appRouter = function (app) {
  });
 
 /**
- * @api {get} /user/:id Request User information
+ * @api {get} /user/:id Request User
  * @apiName GetUserByID
- * @apiGroup User
+ * @apiGroup Users
  *
  * @apiParam {Number} id Users unique ID.
  *
@@ -184,9 +184,9 @@ var appRouter = function (app) {
  });
 
 /**
- * @api {get} /business/:id Request Business information
+ * @api {get} /business/:id Request Business
  * @apiName GetBusiness
- * @apiGroup Business
+ * @apiGroup Businesses
  *
  * @apiParam {Number} id Business unique ID.
  *
@@ -210,9 +210,9 @@ var appRouter = function (app) {
   });
 
 /**
- * @api {get} /business/:id Request Business information
+ * @api {get} /business/:id Request Business
  * @apiName GetBusinessByID
- * @apiGroup Business
+ * @apiGroup Businesses
  *
  * @apiParam {Number} id Business unique ID.
  *
@@ -246,9 +246,9 @@ var appRouter = function (app) {
   });
 
 /**
- * @api {get} /venue/:id Request Venue information
+ * @api {get} /venue/:id Request Venue
  * @apiName GetVenue
- * @apiGroup Venue
+ * @apiGroup Venues
  *
  *
  * @apiSuccess {String} firstname Firstname of the User.
@@ -271,9 +271,9 @@ var appRouter = function (app) {
   });
 
 /**
- * @api {get} /venue/:id Request Venue information
+ * @api {get} /venue/:id Request Venue
  * @apiName GetVenueByID
- * @apiGroup Venue
+ * @apiGroup Venues
  *
  * @apiParam {Number} id Venue unique ID.
  *
@@ -305,12 +305,10 @@ var appRouter = function (app) {
   });
 
 /**
- * @api {get} /address/:id Request Address information
+ * @api {get} /address/ Request Address [Random]
  * @apiName GetAddress
- * @apiGroup Address
+ * @apiGroup Addresses
  *
- * @apiSuccess {String} firstname Firstname of the User.
- * @apiSuccess {String} lastname  Lastname of the User.
  */
   app.get("/address", function (req, res) {
     var addressID = faker.random.number();
@@ -319,9 +317,9 @@ var appRouter = function (app) {
   });
 
 /**
- * @api {get} /address/:id Request Address information
+ * @api {get} /address/:id Request Address by ID
  * @apiName GetAddressByID
- * @apiGroup Address
+ * @apiGroup Addresses
  *
  * @apiParam {Number} id Address unique ID.
  *
@@ -341,23 +339,30 @@ var appRouter = function (app) {
 
 
 /**
- * @api {get} /owner/:id Request Owner information
+ * @api {get} /owner/:id Request Business Owner
  * @apiName GetOwner
- * @apiGroup Ownership
+ * @apiGroup Owners
  *
  * @apiParam {Number} id Business unique ID.
  *
- * @apiSuccess {String} firstname Firstname of the User.
- * @apiSuccess {String} lastname  Lastname of the User.
+ * @apiSuccess {Number} ID ID of the Business.
+ * @apiSuccess {Number} businessID ID of the Business.
+ * @apiSuccess {Number} userID ID of the User.
+ * @apiSuccess {Object[]} user  User details.
+ * @apiSuccess {String} createdAt Timestamp of User creation.
+ * @apiSuccess {Number} createdBy User ID of generating User.
  */
 
   app.get("/owner/:num", function (req, res) {
     var num = req.params.num;
     if (isFinite(num) && num  > 0 ) {
       faker.seed(parseInt(num));
+      var userID = faker.random.number();
       var data = ({
         ID: num,
-        userID: faker.random.number(),
+        businessID: num,
+        userID: userID,
+        user: user(userID),
         createdAt: faker.date.past(),
         createdBy: faker.random.number(),
       });
@@ -369,9 +374,9 @@ var appRouter = function (app) {
 
 
 /**
- * @api {get} /owns/:id Request Owner information
+ * @api {get} /owns/:id Request Users Business
  * @apiName GetOwns
- * @apiGroup Ownership
+ * @apiGroup Owners
  *
  * @apiParam {Number} id User unique ID.
  *
@@ -396,9 +401,9 @@ var appRouter = function (app) {
   });
 
 /**
- * @api {get} /owns/:id Request Owner information
+ * @api {get} /owns/:id Request Owner
  * @apiName GetOwns
- * @apiGroup Ownership
+ * @apiGroup Owners
  *
  * @apiParam {Number} id User unique ID.
  *
@@ -423,14 +428,16 @@ var appRouter = function (app) {
   });
 
 /**
- * @api {get} /owns/:id Request Owner information
+ * @api {get} /manages/:id Request Owner
  * @apiName GetOwns
- * @apiGroup Ownership
+ * @apiGroup Management
  *
  * @apiParam {Number} id User unique ID.
  *
  * @apiSuccess {String} firstname Firstname of the User.
  * @apiSuccess {String} lastname  Lastname of the User.
+ * @apiSuccess {Number} remaining Remaining capcity of venue.
+ * @apiSuccess {String} createdAt Timestamp of User creation.
  */
   app.get("/manages/:num", function (req, res) {
     var num = req.params.num;
@@ -450,9 +457,9 @@ var appRouter = function (app) {
   });
 
 /**
- * @api {get} /owns/:id Request Owner information
- * @apiName GetOwns
- * @apiGroup Ownership
+ * @api {get} /employees/:id Request Venue Employees
+ * @apiName GetEmployees
+ * @apiGroup Employees
  *
  * @apiParam {Number} id User unique ID.
  *
@@ -491,9 +498,9 @@ var appRouter = function (app) {
 
 
 /**
- * @api {get} /owns/:id Request Owner information
- * @apiName GetOwns
- * @apiGroup Ownership
+ * @api {get} /owns/:id Request Employment Status
+ * @apiName GetEmployment
+ * @apiGroup Employees
  *
  * @apiParam {Number} id User unique ID.
  *
@@ -521,9 +528,9 @@ app.get("/employed/:num", function (req, res) {
 
 
 /**
- * @api {get} /owns/:id Request Owner information
- * @apiName GetOwns
- * @apiGroup Ownership
+ * @api {get} /file/:id Request File Details
+ * @apiName GetFile
+ * @apiGroup Files
  *
  * @apiParam {Number} id User unique ID.
  *
@@ -552,9 +559,9 @@ app.get("/file/:num", function (req, res) {
 });
 
 /**
- * @api {get} /owns/:id Request Owner information
- * @apiName Logs
- * @apiGroup Log
+ * @api {get} /logs/ Request Recent Log Entries
+ * @apiName GetLogs
+ * @apiGroup Logs
  *
  * @apiParam {Number} id User unique ID.
  *
@@ -583,9 +590,9 @@ app.get("/file/:num", function (req, res) {
   }); 
 
 /**
- * @api {get} /log/:id Request recent log information
+ * @api {get} /log/:id Request Log Entry By ID
  * @apiName LogsByID
- * @apiGroup Log
+ * @apiGroup Logs
  *
  * @apiParam {Number} id Log unique ID.
  *
@@ -618,7 +625,7 @@ app.get("/file/:num", function (req, res) {
  * @api {get} /capacity/:id Request Venue Capacity
  * @apiVersion 1.0.1
  * @apiName GetCapacity
- * @apiGroup Capacity
+ * @apiGroup Capacities
  *
  *
  * @apiSuccess {Number} ID ID of the Venue.
