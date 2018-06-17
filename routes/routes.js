@@ -213,8 +213,8 @@ var appRouter = function (app) {
  *
  * @apiParam {Number} id Business unique ID.
  *
- * @apiSuccess {String} firstname Firstname of the User.
- * @apiSuccess {String} lastname  Lastname of the User.
+ * @apiSuccess {String} createdAt Timestamp of User creation.
+ * @apiSuccess {Number} createdBy User ID of generating User.
  */
   app.get("/business/:num", function (req, res) {
     var num = req.params.num;
@@ -247,9 +247,10 @@ var appRouter = function (app) {
  * @apiName GetVenue
  * @apiGroup Venues
  *
- *
- * @apiSuccess {String} firstname Firstname of the User.
- * @apiSuccess {String} lastname  Lastname of the User.
+ * @apiSuccess {Number} ID ID of the Venue.
+ * @apiSuccess {Number} addressID ID of the Venue.
+ * @apiSuccess {String} createdAt Timestamp of User creation.
+ * @apiSuccess {Number} createdBy User ID of generating User.
  */
   app.get("/venue", function (req, res) {
     var venueID = faker.random.number();
@@ -274,8 +275,10 @@ var appRouter = function (app) {
  *
  * @apiParam {Number} id Venue unique ID.
  *
- * @apiSuccess {String} firstname Firstname of the User.
- * @apiSuccess {String} lastname  Lastname of the User.
+ * @apiSuccess {Number} ID ID of the Address.
+ * @apiSuccess {Number} addressID ID of the Address. 
+ * @apiSuccess {String} createdAt Timestamp of User creation.
+ * @apiSuccess {Number} createdBy User ID of generating User.
  */
   app.get("/venue/:num", function (req, res) {
     var num = req.params.num;
@@ -306,6 +309,10 @@ var appRouter = function (app) {
  * @apiName GetAddress
  * @apiGroup Addresses
  *
+ * @apiSuccess {Number} ID ID of the Address.
+ * @apiSuccess {Number} addressID ID of the Address. 
+ * @apiSuccess {String} createdAt Timestamp of User creation.
+ * @apiSuccess {Number} createdBy User ID of generating User.
  */
   app.get("/address", function (req, res) {
     var addressID = faker.random.number();
@@ -320,8 +327,10 @@ var appRouter = function (app) {
  *
  * @apiParam {Number} id Address unique ID.
  *
- * @apiSuccess {String} firstname Firstname of the User.
- * @apiSuccess {String} lastname  Lastname of the User.
+ * @apiSuccess {Number} ID ID of the Address.
+ * @apiSuccess {Number} addressID ID of the Address. 
+ * @apiSuccess {String} createdAt Timestamp of User creation.
+ * @apiSuccess {Number} createdBy User ID of generating User.
  */
   app.get("/address/:num", function (req, res) {
     var num = req.params.num;
@@ -399,13 +408,17 @@ var appRouter = function (app) {
 
 /**
  * @api {get} /owns/:id Request Owner
- * @apiName GetOwns
- * @apiGroup Owners
+ * @apiName GetManagers
+ * @apiGroup Managers
  *
- * @apiParam {Number} id User unique ID.
+ * @apiParam {Number} id Venue unique ID.
  *
- * @apiSuccess {String} firstname Firstname of the User.
- * @apiSuccess {String} lastname  Lastname of the User.
+ * @apiSuccess {Number} ID ID of the Venue.
+ * @apiSuccess {Number} venueID ID of the Venue.
+ * @apiSuccess {Number} userID ID of the User.
+ * @apiSuccess {Object[]} user  User details.
+ * @apiSuccess {String} createdAt Timestamp of User creation.
+ * @apiSuccess {Number} createdBy User ID of generating User.
  */
   app.get("/manager/:num", function (req, res) {
     var num = req.params.num;
@@ -427,7 +440,7 @@ var appRouter = function (app) {
 /**
  * @api {get} /manages/:id Request Owner
  * @apiName GetOwns
- * @apiGroup Management
+ * @apiGroup Managers
  *
  * @apiParam {Number} id User unique ID.
  *
