@@ -60,7 +60,7 @@ var appRouter = function (app) {
 
 /**
  * @api {get} /v2.0/user/:id Request Users Group
- * @apiVersion 2.0.0
+ * @apiVersion 2.0.1
  * @apiName GetUsersByID
  * @apiGroup Users
  *
@@ -80,10 +80,11 @@ var appRouter = function (app) {
  app.get("/v2.0/users/:num", function (req, res) {
    var users = [];
    var num = req.params.num;
-   var addressID = faker.random.number();
+   faker.seed(parseInt(num));
    if (isFinite(num) && num  > 0 ) {
      for (i = 0; i <= num-1; i++) {
        var userID = faker.random.number();
+       var addressID = faker.random.number();
        users.push({
            ID: userID,
            userID: userID,
