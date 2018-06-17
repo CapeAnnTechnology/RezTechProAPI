@@ -526,7 +526,8 @@ app.get("/files/", function (req, res) {
   var files = [];  
   var fileCount = faker.random.number() % 20;
   for (i = 0; i <= fileCount; i++) {
-   files.push(file(faker.random.number()));
+    fileID = faker.random.number();
+    files.push(file(fileID));
   }
    var data = ({
       createdAt: faker.date.past(),
@@ -692,6 +693,144 @@ app.get("/file/:num", function (req, res) {
   });
 
 /**
+ * @api {get} /checklists/:id Request Checklist By Venue ID
+ * @apiVersion 1.1.2
+ * @apiName GetChecklistByVenueID
+ * @apiGroup Checklists
+ *
+ * @apiParam {Number} id Venue unique ID. 
+ *
+ * @apiSuccess {Number} ID ID of the Checklist.
+ * @apiSuccess {Number} checklistID ID of the Checklist.
+ * @apiSuccess {Number} venueID ID of the Venue.
+ * @apiSuccess {Object[]} venue Venue Details.
+ * @apiSuccess {Number} userID ID of the User.
+ * @apiSuccess {Object[]} user  User details.
+ * @apiSuccess {String} createdAt Timestamp of Request.
+ * @apiSuccess {Number} createdBy User ID of generating Checklist.
+ */
+  app.get("/checklists/:num", function (req, res) {
+    var num = req.params.num;
+    checklists = [];
+    faker.seed(parseInt(num));
+    var venueID = faker.random.number();
+    var userID = faker.random.number();
+    var checklistCount = faker.random.number() % 30;
+    for (i = 0; i <= checklistCount; i++) {
+      checklistID = faker.random.number();
+      checklists.push(checklist(checklistID));
+    }
+    var data = ({
+      ID: num,
+      venueID: num,
+      venue: venue(num),
+      checklists: checklists,
+      createdAt: faker.date.recent(),
+      createdBy: userID,
+    });
+    res.status(200).send(data);
+  });
+
+/**
+ * @api {get} /checklists/:id/recent/ Request Recent Checklist By Venue ID
+ * @apiVersion 1.1.2
+ * @apiName GetRecentChecklists
+ * @apiGroup Checklists
+ *
+ * @apiParam {Number} id Venue unique ID. 
+ *
+ * @apiSuccess {Number} ID ID of the Checklist.
+ * @apiSuccess {Number} checklistID ID of the Checklist.
+ * @apiSuccess {Number} venueID ID of the Venue.
+ * @apiSuccess {Object[]} venue Venue Details.
+ * @apiSuccess {String} fromDate Timestamp of Range Start.
+ * @apiSuccess {String} toDate Timestamp of Range End.
+ * @apiSuccess {Number} userID ID of the User.
+ * @apiSuccess {Object[]} user  User details.
+ * @apiSuccess {String} createdAt Timestamp of Request.
+ * @apiSuccess {Number} createdBy User ID of generating Checklist.
+ */
+  app.get("/checklists/:num/recent/", function (req, res) {
+    var num = req.params.num;
+    checklists = [];
+    faker.seed(parseInt(num));
+    var venueID = faker.random.number();
+    var userID = faker.random.number();
+    var checklistCount = faker.random.number() % 30;
+    for (i = 0; i <= checklistCount; i++) {
+      checklistID = faker.random.number();
+      checklists.push(checklist(checklistID));
+    }
+    var fromDate = new Date();
+    fromDate.setDate(fromDate.getDate() - 7);    
+    var toDate = new Date();
+    var data = ({
+      ID: num,
+      venueID: num,
+      venue: venue(num),
+      rangeFrom: fromDate,
+      rangeTo: toDate,
+      checklists: checklists,
+      createdAt: faker.date.recent(),
+      createdBy: userID,
+    });
+    res.status(200).send(data);
+  });  
+
+  /**
+ * @api {get} /checklists/:id/from/to/ Request Recent Checklist By Venue ID
+ * @apiVersion 1.1.2
+ * @apiName GetChecklistsDateRange
+ * @apiGroup Checklists
+ *
+ * @apiParam {Number} id Venue unique ID. 
+ *
+ * @apiSuccess {Number} ID ID of the Checklist.
+ * @apiSuccess {Number} checklistID ID of the Checklist.
+ * @apiSuccess {Number} venueID ID of the Venue.
+ * @apiSuccess {Object[]} venue Venue Details.
+ * @apiSuccess {String} fromDate Timestamp of Range Start.
+ * @apiSuccess {String} toDate Timestamp of Range End.
+ * @apiSuccess {Number} userID ID of the User.
+ * @apiSuccess {Object[]} user  User details.
+ * @apiSuccess {String} createdAt Timestamp of Request.
+ * @apiSuccess {Number} createdBy User ID of generating Checklist.
+ */
+  app.get("/checklists/:num/from/:from_month/:from_day/:from_year/to/", function (req, res) {
+    var num = req.params.num;
+    var from_month = req.params.from_month;
+    var from_day = req.params.from_day;
+    var from_year = req.params.from_year;
+    var fromDate = new Date(from_year,from_month-1,from_day);
+
+    var to_month = req.params.from_month;
+    var to_day = req.params.from_day;
+    var to_year = req.params.from_year;
+    var toDate = new Date(to_year,to_month-1,to_day);
+
+    checklists = [];
+    faker.seed(parseInt(num));
+    var venueID = faker.random.number();
+    var userID = faker.random.number();
+    var checklistCount = faker.random.number() % 30;
+    for (i = 0; i <= checklistCount; i++) {
+      checklistID = faker.random.number();
+      checklists.push(checklist(checklistID));
+    }
+    var data = ({
+      ID: num,
+      venueID: num,
+      venue: venue(num),
+      rangeFrom: fromDate,
+      rangeTo: toDate,
+      checklists: checklists,
+      createdAt: faker.date.recent(),
+      createdBy: userID,
+    });
+    res.status(200).send(data);
+  });  
+
+/**
  * @api {get} /checklist/:id Request Checklist By ID
  * @apiVersion 1.1.2
  * @apiName GetChecklistByID
@@ -800,6 +939,20 @@ function venue(num){
     email: faker.internet.email(),
     addressID: addressID,
     address: address(addressID),
+    createdAt: faker.date.past(),
+    createdBy: faker.random.number(),
+  });
+  return data;
+}
+
+function checklist(num){
+  faker.seed(parseInt(num));
+  var data = ({
+    ID: num,
+    fileID: num,
+    fileName: faker.system.commonFileName(),
+    fileType: faker.system.commonFileType(),
+    fileExtension: faker.system.commonFileExt(),
     createdAt: faker.date.past(),
     createdBy: faker.random.number(),
   });
