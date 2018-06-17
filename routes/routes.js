@@ -1,5 +1,6 @@
 var faker = require("faker");
-var PDFDocument = require('pdfkit');
+// removed pdfkit
+// var PDFDocument = require('pdfkit');
 
 faker.seed(42);
 
