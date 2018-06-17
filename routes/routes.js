@@ -1,4 +1,5 @@
 var faker = require("faker");
+var PDFDocument = require('pdfkit');
 
 faker.seed(42);
 
@@ -732,7 +733,7 @@ app.get("/file/:num", function (req, res) {
   });
 
 /**
- * @api {get} /checklists/:id/recent/ Request Recent Checklist By Venue ID
+ * @api {get} /checklists/:id/recent/ Request Recent Checklist By Venue ID From Past 7 Days
  * @apiVersion 1.1.2
  * @apiName GetRecentChecklists
  * @apiGroup Checklists
@@ -778,7 +779,7 @@ app.get("/file/:num", function (req, res) {
   });  
 
   /**
- * @api {get} /checklists/:id/from/to/ Request Recent Checklist By Venue ID
+ * @api {get} /checklists/:id/from/:month/:day/:year/to/:month/:day/:year/ Request Recent Checklist By Venue ID And Date Range
  * @apiVersion 1.1.2
  * @apiName GetChecklistsDateRange
  * @apiGroup Checklists
@@ -865,6 +866,55 @@ app.get("/file/:num", function (req, res) {
     res.status(200).send(data);
   });
 
+/**
+ * @api {get} /checklist/:id/pdf/ Request Checklist PDF By ID
+ * @apiVersion 1.1.3
+ * @apiName GetChecklistPDFByID
+ * @apiGroup Checklists
+ *
+ * @apiParam {Number} id Checklist unique ID. 
+ *
+ * @apiSuccess {File} PDF
+ */
+  app.get("/checklist/:num/pdf/", function (req, res) {
+    var num = req.params.num;
+    faker.seed(parseInt(num));
+    var venueID = faker.random.number();
+    var userID = faker.random.number();
+    var date = faker.date.recent();
+    var data = ({
+      ID: num,
+      checklistID: num,
+      venueID: venueID,
+      venue: venue(venueID),
+      userID: userID,
+      user: user(userID),
+      createdAt: faker.date.recent(),
+      createdBy: userID,
+    });
+    const doc = new PDFDocument()
+    var filename = faker.helpers.slugify(date.toString());
+    // Stripping special characters
+    filename = encodeURIComponent(filename) + '.pdf'
+    // Setting response to 'attachment' (download).
+    // If you use 'inline' here it will automatically open the PDF
+    res.setHeader('Content-disposition', 'inline; filename="' + filename + '"')
+    res.setHeader('Content-type', 'application/pdf')
+
+    // doc.y = 300
+    doc.text("Timestamp: "+faker.helpers.slugify(date.toString()), 50, 50)
+
+    // doc.y = 400
+    doc.text("Venue ID: "+venueID, 50, 70)
+
+    // doc.y = 500
+    doc.text("Venue Name: "+venue(venueID).name, 50, 90)
+
+    doc.pipe(res)
+    doc.end()
+  });
+    
+
 
 } // end appRouter;
 
@@ -950,9 +1000,8 @@ function checklist(num){
   var data = ({
     ID: num,
     fileID: num,
-    fileName: faker.system.commonFileName(),
-    fileType: faker.system.commonFileType(),
-    fileExtension: faker.system.commonFileExt(),
+    
+
     createdAt: faker.date.past(),
     createdBy: faker.random.number(),
   });
