@@ -7,6 +7,15 @@ faker.seed(42);
 
 var appRouter = function (app) {
 
+/**
+ * @api {get} /v1.0/ Welcome Message
+ * @apiVersion 1.1.3
+ * @apiName Welcome
+ * @apiGroup General
+ *
+ * @apiSuccess {String} message Welcome Message.
+ * @apiSuccess {String} version Version Number of API.
+ */
   app.get("/v1.0/", function (req, res) {
     res.status(200).send({ message: 'Welcome to our restful API', version: version });
   });
