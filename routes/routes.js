@@ -1086,7 +1086,7 @@ app.get("/file/:num", function (req, res) {
           answerFont)
       .writeText(
           data.questions[q].capacity,
-          150,295,
+          150,297,
           smallFont)
       .writeText(
           (data.questions[q].date.getUTCMonth() + 1) + '/' +
@@ -1143,8 +1143,13 @@ app.get("/file/:num", function (req, res) {
           100,15,
           verySmallFont)
       .writeText(
+          'Document ID#: '+data.ID,
+          230,15,
+          verySmallFont)
+      
+      .writeText(
           data.createdAt,
-          260,15,
+          290,15,
           verySmallFont)
       .writeText(
           data.ipAddress,
