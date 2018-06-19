@@ -6,7 +6,40 @@ faker.seed(42);
 
 var version = '2.0.1';
 
-var appRouter = function (app) {
+var CONTACTS_COLLECTION = "contacts";
+var CHECKLISTS_COLLECTION = "checklists";
+
+/*
+ |--------------------------------------
+ | Dependencies
+ |--------------------------------------
+ */
+
+const jwt = require('express-jwt');
+const jwks = require('jwks-rsa');
+
+var appRouter = function (app, db) {
+
+    // Authentication middleware
+  const jwtCheck = jwt({
+    secret: jwks.expressJwtSecret({
+      cache: true,
+      rateLimit: true,
+      jwksRequestsPerMinute: 5,
+      jwksUri: `https://${process.env.AUTH0_DOMAIN}/.well-known/jwks.json`
+    }),
+    audience: process.env.AUTH0_API_AUDIENCE,
+    issuer: `https://${process.env.AUTH0_DOMAIN}/`,
+    algorithm: 'RS256'
+  });
+
+// Generic error handler used by all endpoints.
+function handleError(res, reason, message, code) {
+  console.log("ERROR: " + reason);
+  res.status(code || 500).json({"error": message});
+}
+
+
 /**
  * @api {get} /v2.0/ Welcome Message
  * @apiVersion 2.0.1
@@ -708,6 +741,37 @@ app.get("/v2.0/file/:num", function (req, res) {
     res.status(200).send(data);
   });
 
+
+/**
+ * @api {post} /v2.0/checklist/ Create New Checklist
+ * @apiVersion 2.0.1
+ * @apiName PostChecklist
+ * @apiGroup Checklists
+ *
+ * @apiParam {object} body New Checklist
+ *
+ * @apiSuccess {Number} Checklist ID
+ *
+ * @apiFailure {String} message 'Failed to create new checklist.'
+ */
+app.post("/v2.0/checklist", function(req, res) {
+  var newChecklist = req.body;
+  newChecklist.createDate = new Date();
+  newChecklist.createdAt = newChecklist.createDate;
+
+  if (!req.body.venueID || !req.body.userID) {
+    handleError(res, "Invalid user input", "Must provide a venueID and userID", 400);
+  }else{
+    db.collection(CHECKLISTS_COLLECTION).insertOne(newChecklist, function(err, doc) {
+      if (err) {
+        handleError(res, err.message, "Failed to create new checklist.");
+      } else {
+        res.status(201).json(doc.ops[0]);
+      }
+    });
+  }
+});  
+
 /**
  * @api {get} /v2.0/checklists/:id Request Checklist By Venue ID
  * @apiVersion 2.0.1
@@ -1211,6 +1275,56 @@ app.get("/v2.0/file/:num", function (req, res) {
 
   });
     
+
+/**
+   * @api {get} /v2.0/contacts/ Request Contacts
+   * @apiVersion 2.0.1
+   * @apiName GetContacts
+   * @apiGroup Contacts
+   *
+   * @apiSuccess {Object} contacts Contacts
+   *
+   * @apiFailure {String} message 'Failed to create new contact.'
+   */
+app.get("/v2.0/contacts", function(req, res) {
+  db.collection(CONTACTS_COLLECTION).find({}).toArray(function(err, docs) {
+    if (err) {
+      handleError(res, err.message, "Failed to get contacts.");
+    } else {
+      res.status(200).json(docs);
+    }
+  });
+});  
+
+/**
+ * @api {post} /v2.0/contacts/ Create New Contact
+ * @apiVersion 2.0.1
+ * @apiName PostContacts
+ * @apiGroup Contacts
+ *
+ * @apiParam {object} body New Contacts
+ *
+ * @apiSuccess {Number} Contact ID
+ *
+ * @apiFailure {String} message 'Failed to create new contact.'
+ */
+app.post("/v2.0/contacts", function(req, res) {
+  var newContact = req.body;
+  newContact.createDate = new Date();
+
+  if (!(req.body.firstName || req.body.lastName)) {
+    handleError(res, "Invalid user input", "Must provide a first or last name.", 400);
+  }
+
+  db.collection(CONTACTS_COLLECTION).insertOne(newContact, function(err, doc) {
+    if (err) {
+      handleError(res, err.message, "Failed to create new contact.");
+    } else {
+      res.status(201).json(doc.ops[0]);
+    }
+  });
+});
+
 
 
 } // end appRouter;

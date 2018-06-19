@@ -23,9 +23,15 @@
   "homepage": "https://github.com/CapeAnnTechnology/RezTechProAPI#readme",
   "dependencies": {
     "body-parser": "^1.18.3",
+    "cors": "^2.8.4",
     "express": "^4.16.3",
+    "express-jwt": "^5.3.1",
     "faker": "^4.1.0",
     "hummus": "^1.0.87",
+    "jwks-rsa": "^1.2.1",
+    "method-override": "^2.3.10",
+    "mongodb": "^3.0.10",
+    "mongoose": "^5.1.6",
     "nodemon": "^1.17.5",
     "pdfkit": "^0.8.3"
   },
