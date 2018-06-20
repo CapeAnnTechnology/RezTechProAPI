@@ -1,8 +1,8 @@
-var express = require("express");
-var path = require("path");
-var bodyParser = require("body-parser");
-var routes_legacy = require("./v1.0/routes/routes.js");
-var routes = require("./v2.0/routes/routes.js");
+const express = require('express');
+const path = require('path');
+const bodyParser = require('body-parser');
+const routes_legacy = require('./v1.0/routes/routes.js');
+const routes = require('./v2.0/routes/routes.js');
 
 const mongoose = require('mongoose');
 const methodOverride = require('method-override');
@@ -19,25 +19,25 @@ const cors = require('cors');
 mongoose.connect(process.env.MONGODB_URI);
 const monDb = mongoose.connection;
 
-monDb.on('error', function() {
+monDb.on('error', () => {
   console.error('MongoDB Connection Error. Please make sure that', process.env.MONGODB_URI, 'is running.');
 });
 
-monDb.once('open', function callback() {
+monDb.once('open', () => {
   console.info('Connected to MongoDB:', process.env.MONGODB_URI);
 });
 
 
+const mongodb = require('mongodb');
 
-var mongodb = require("mongodb");
-var ObjectID = mongodb.ObjectID;
+const ObjectID = mongodb.ObjectID;
 
-var version = '2.0.1';
+const version = '2.0.1';
 // removed pdfkit
 // var PDFDocument = require('pdfkit');
 
 // Create a database variable outside of the database connection callback to reuse the connection pool in your app.
-var db;
+let db;
 
 // Set up the routing.
 // var legacy = express.Router();
@@ -61,7 +61,7 @@ const port = process.env.PORT || '3000';
 app.set('port', port);
 
 // Connect to the database before starting the application server.
-mongodb.MongoClient.connect(process.env.MONGODB_URI, function (err, client) {
+mongodb.MongoClient.connect(process.env.MONGODB_URI, (err, client) => {
   if (err) {
     console.log(err);
     process.exit(1);
@@ -69,26 +69,23 @@ mongodb.MongoClient.connect(process.env.MONGODB_URI, function (err, client) {
 
   // Save database object from the callback for reuse.
   // 2.x version
-  // db = database; 
+  // db = database;
   // 3.x version
   db = client.db(process.env.MONGODB_DB);
-  console.log("Database connection ready");
+  console.log('Database connection ready');
 
-  routes(app,db);
-  routes_legacy(app,db);
+  routes(app, db);
+  routes_legacy(app, db);
 
 
   // Initialize the app.
-  var server = app.listen(process.env.PORT || 3000, function () {
-    var port = server.address().port;
-    console.log("App now running on port", port);
+  var server = app.listen(process.env.PORT || 3000, () => {
+    const port = server.address().port;
+    console.log('App now running on port', port);
   });
 });
 
 // References:
 // https://www.codementor.io/wapjude/creating-a-simple-rest-api-with-expressjs-in-5min-bbtmk51mq
 // https://www.sitepoint.com/deploy-rest-api-in-30-mins-mlab-heroku/
-
-
-
 
