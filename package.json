@@ -23,6 +23,7 @@
   },
   "homepage": "https://github.com/CapeAnnTechnology/RezTechProAPI#readme",
   "dependencies": {
+    "auth0-js": "^9.6.1",
     "body-parser": "^1.18.3",
     "cors": "^2.8.4",
     "express": "^4.16.3",

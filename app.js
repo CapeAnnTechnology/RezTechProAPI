@@ -1,13 +1,14 @@
 const express = require('express');
-const path = require('path');
+// const path = require('path');
 const bodyParser = require('body-parser');
-const routes_legacy = require('./v1.0/routes/routes.js');
+const routesLegacy = require('./v1.0/routes/routes.js');
 const routes = require('./v2.0/routes/routes.js');
 
 const mongoose = require('mongoose');
 const methodOverride = require('method-override');
 const cors = require('cors');
 
+// const version = '2.0.1';
 
 /*
  |--------------------------------------
@@ -20,23 +21,22 @@ mongoose.connect(process.env.MONGODB_URI);
 const monDb = mongoose.connection;
 
 monDb.on('error', () => {
-  console.error('MongoDB Connection Error. Please make sure that', process.env.MONGODB_URI, 'is running.');
+  console.error(
+    'MongoDB Connection Error. Please make sure that',
+    process.env.MONGODB_URI, 'is running.',
+  );
 });
 
 monDb.once('open', () => {
   console.info('Connected to MongoDB:', process.env.MONGODB_URI);
 });
 
-
 const mongodb = require('mongodb');
 
-const ObjectID = mongodb.ObjectID;
+// const ObjectID = mongodb.ObjectID;
 
-const version = '2.0.1';
-// removed pdfkit
-// var PDFDocument = require('pdfkit');
-
-// Create a database variable outside of the database connection callback to reuse the connection pool in your app.
+// Create a database variable outside of the database connection
+// callback to reuse the connection pool in your app.
 let db;
 
 // Set up the routing.
@@ -75,12 +75,11 @@ mongodb.MongoClient.connect(process.env.MONGODB_URI, (err, client) => {
   console.log('Database connection ready');
 
   routes(app, db);
-  routes_legacy(app, db);
+  routesLegacy(app, db);
 
 
   // Initialize the app.
-  var server = app.listen(process.env.PORT || 3000, () => {
-    const port = server.address().port;
+  app.listen(process.env.PORT || 3000, () => {
     console.log('App now running on port', port);
   });
 });

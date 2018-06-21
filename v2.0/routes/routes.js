@@ -18,7 +18,117 @@ const CHECKLISTS_COLLECTION = 'checklists';
 const jwt = require('express-jwt');
 const jwks = require('jwks-rsa');
 
+const Event = require('../models/Event');
+const Rsvp = require('../models/Rsvp');
+const Checklist = require('../models/Checklist');
+
 const appRouter = function (app, db) {
+/** ***
+*
+* Static Functions
+*
+**** */
+
+  function certificate(num) {
+    faker.seed(parseInt(num, 10));
+    const certificateID = faker.random.number();
+    const data = ({
+      id: certificateID,
+      certificateID,
+      number: faker.random.alphaNumeric(15),
+      expiresAt: faker.date.future(),
+      createdAt: faker.date.past(),
+      createdBy: faker.random.number(),
+    });
+    return data;
+  }
+
+  function address(num) {
+    faker.seed(parseInt(num, 10));
+    const data = ({
+      id: num,
+      adddressID: num,
+      streetAddress: faker.address.streetAddress(),
+      secondaryAddress: faker.address.secondaryAddress(),
+      city: faker.address.city(),
+      county: faker.address.county(),
+      state: faker.address.state(),
+      zipCode: faker.address.zipCode(),
+      country: faker.address.country(),
+      phoneNumber: faker.phone.phoneNumber(),
+    });
+    return data;
+  }
+
+  function user(num) {
+    faker.seed(parseInt(num, 10));
+    const addressID = faker.random.number();
+    const data = ({
+      id: num,
+      userID: num,
+      prefix: faker.name.prefix(),
+      firstName: faker.name.firstName(),
+      lastName: faker.name.lastName(),
+      suffix: faker.name.suffix(),
+      username: faker.internet.userName(),
+      email: faker.internet.email(),
+      password: faker.internet.password(),
+      certificate: certificate(num),
+      phoneNumber: faker.phone.phoneNumber(),
+      altPhoneNumber: faker.phone.phoneNumber(),
+      addressID,
+      address: address(addressID),
+      createdAt: faker.date.past(),
+      createdBy: faker.random.number(),
+    });
+    return data;
+  }
+
+
+
+  function file(num) {
+    faker.seed(parseInt(num, 10));
+    const data = ({
+      id: num,
+      fileID: num,
+      fileName: faker.system.commonFileName(),
+      fileType: faker.system.commonFileType(),
+      fileExtension: faker.system.commonFileExt(),
+      createdAt: faker.date.past(),
+      createdBy: faker.random.number(),
+    });
+    return data;
+  }
+
+  function venue(num) {
+    faker.seed(parseInt(num, 10));
+    const addressID = faker.random.number();
+    const data = ({
+      id: num,
+      venueID: num,
+      name: faker.company.companyName(),
+      email: faker.internet.email(),
+      addressID,
+      address: address(addressID),
+      createdAt: faker.date.past(),
+      createdBy: faker.random.number(),
+    });
+    return data;
+  }
+
+  function checklist(num) {
+    faker.seed(parseInt(num, 10));
+    const data = ({
+      id: num,
+      fileID: num,
+      ipAddress: faker.internet.ip(),
+      userAgent: faker.internet.userAgent(),
+      createdAt: faker.date.past(),
+      createdBy: faker.random.number(),
+    });
+    return data;
+  }
+
   // Authentication middleware
   const jwtCheck = jwt({
     secret: jwks.expressJwtSecret({
@@ -32,11 +142,30 @@ const appRouter = function (app, db) {
     algorithm: 'RS256',
   });
 
+  // Check for an authenticated admin user
+  const adminCheck = (req, res, next) => {
+    const roles = req.user[process.env.NAMESPACE] || [];
+    if (roles.indexOf('admin') > -1) {
+      next();
+    } else {
+      res.status(401).send({message: 'Not authorized for admin access'});
+    }
+  }
+
   // Generic error handler used by all endpoints.
   function handleError(res, reason, message, code) {
     console.log(`ERROR: ${reason}`);
     res.status(code || 500).json({ error: message });
   }
+
+/*
+ |--------------------------------------
+ | API Routes
+ |--------------------------------------
+ */
+
+ const _eventListProjection = 'title startDatetime endDatetime viewPublic';
+ const _checklistListProjection = 'title startDatetime endDatetime viewPublic';
 
 
   /**
@@ -112,9 +241,9 @@ const appRouter = function (app, db) {
   app.get('/v2.0/users/:num', (req, res) => {
     const users = [];
     const num = req.params.num;
-    faker.seed(parseInt(num));
-    if (isFinite(num) && num > 0) {
-      for (i = 0; i <= num - 1; i++) {
+    faker.seed(parseInt(num, 10));
+    if (Number.isFinite(num) && num > 0) {
+      for (let i = 0; i <= num - 1; i += 1) {
         const userID = faker.random.number();
         const addressID = faker.random.number();
         users.push({
@@ -157,11 +286,10 @@ const appRouter = function (app, db) {
  * @apiSuccess {Number} createdBy User ID of generating User.
  */
   app.get('/v2.0/user/:num', (req, res) => {
-    const users = [];
     const num = req.params.num;
 
-    if (isFinite(num) && num > 0) {
-      faker.seed(parseInt(num));
+    if (Number.isFinite(num) && num > 0) {
+      faker.seed(parseInt(num, 10));
       const addressID = faker.random.number();
       user = ({
         id: num,
@@ -226,8 +354,8 @@ const appRouter = function (app, db) {
   app.get('/v2.0/business/:num', (req, res) => {
     const num = req.params.num;
 
-    if (isFinite(num) && num > 0) {
-      faker.seed(parseInt(num));
+    if (Number.isFinite(num) && num > 0) {
+      faker.seed(parseInt(num, 10));
       const addressID = faker.random.number();
       const data = ({
         id: num,
@@ -291,8 +419,8 @@ const appRouter = function (app, db) {
   app.get('/v2.0/venue/:num', (req, res) => {
     const num = req.params.num;
 
-    if (isFinite(num) && num > 0) {
-      faker.seed(parseInt(num));
+    if (Number.isFinite(num) && num > 0) {
+      faker.seed(parseInt(num, 10));
       const addressID = faker.random.number();
       const data = ({
         id: num,
@@ -344,8 +472,8 @@ const appRouter = function (app, db) {
  */
   app.get('/v2.0/address/:num', (req, res) => {
     const num = req.params.num;
-    if (isFinite(num) && num > 0) {
-      faker.seed(parseInt(num));
+    if (Number.isFinite(num) && num > 0) {
+      faker.seed(parseInt(num, 10));
       const data = (address(num));
       res.status(200).send(data);
     } else {
@@ -372,8 +500,8 @@ const appRouter = function (app, db) {
 
   app.get('/v2.0/owner/:num', (req, res) => {
     const num = req.params.num;
-    if (isFinite(num) && num > 0) {
-      faker.seed(parseInt(num));
+    if (Number.isFinite(num) && num > 0) {
+      faker.seed(parseInt(num, 10));
       const userID = faker.random.number();
       const data = ({
         id: num,
@@ -403,8 +531,8 @@ const appRouter = function (app, db) {
  */
   app.get('/v2.0/owns/:num', (req, res) => {
     const num = req.params.num;
-    if (isFinite(num) && num > 0) {
-      faker.seed(parseInt(num));
+    if (Number.isFinite(num) && num > 0) {
+      faker.seed(parseInt(num, 10));
       const data = ({
         id: num,
         businessID: faker.random.number(),
@@ -434,8 +562,8 @@ const appRouter = function (app, db) {
  */
   app.get('/v2.0/manager/:num', (req, res) => {
     const num = req.params.num;
-    if (isFinite(num) && num > 0) {
-      faker.seed(parseInt(num));
+    if (Number.isFinite(num) && num > 0) {
+      faker.seed(parseInt(num, 10));
       const data = ({
         id: num,
         userID: faker.random.number(),
@@ -463,8 +591,8 @@ const appRouter = function (app, db) {
  */
   app.get('/v2.0/manages/:num', (req, res) => {
     const num = req.params.num;
-    if (isFinite(num) && num > 0) {
-      faker.seed(parseInt(num));
+    if (Number.isFinite(num) && num > 0) {
+      faker.seed(parseInt(num, 10));
       const venueID = faker.random.number();
       const data = ({
         id: num,
@@ -493,11 +621,11 @@ const appRouter = function (app, db) {
 
   app.get('/v2.0/employees/:num', (req, res) => {
     const num = req.params.num;
-    if (isFinite(num) && num > 0) {
-      faker.seed(parseInt(num));
+    if (Number.isFinite(num) && num > 0) {
+      faker.seed(parseInt(num, 10));
       const employeeCount = faker.random.number() % 10;
       const employees = [];
-      for (i = 0; i <= employeeCount; i++) {
+      for (let i = 0; i <= employeeCount; i += 1) {
         const userID = faker.random.number();
         employees.push({
           id: userID,
@@ -534,8 +662,8 @@ const appRouter = function (app, db) {
 
   app.get('/v2.0/employed/:num', (req, res) => {
     const num = req.params.num;
-    if (isFinite(num) && num > 0) {
-      faker.seed(parseInt(num));
+    if (Number.isFinite(num) && num > 0) {
+      faker.seed(parseInt(num, 10));
       const data = ({
         id: num,
         userID: num,
@@ -563,8 +691,8 @@ const appRouter = function (app, db) {
   app.get('/v2.0/files/', (req, res) => {
     const files = [];
     const fileCount = faker.random.number() % 20;
-    for (i = 0; i <= fileCount; i++) {
-      fileID = faker.random.number();
+    for (let i = 0; i <= fileCount; i += 1) {
+      const fileID = faker.random.number();
       files.push(file(fileID));
     }
     const data = ({
@@ -612,8 +740,8 @@ const appRouter = function (app, db) {
 
   app.get('/v2.0/file/:num', (req, res) => {
     const num = req.params.num;
-    if (isFinite(num) && num > 0) {
-      faker.seed(parseInt(num));
+    if (Number.isFinite(num) && num > 0) {
+      faker.seed(parseInt(num, 10));
       const data = (file(num));
       res.status(200).send(data);
     } else {
@@ -635,7 +763,7 @@ const appRouter = function (app, db) {
     const logs = [];
     const num = req.params.num;
     const count = 20;
-    for (i = 0; i <= count; i++) {
+    for (let i = 0; i <= count; i += 1) {
       logs.push({
         id: num,
         logID: num,
@@ -674,8 +802,8 @@ const appRouter = function (app, db) {
  */
   app.get('/v2.0/log/:num', (req, res) => {
     const num = req.params.num;
-    if (isFinite(num) && num > 0) {
-      faker.seed(parseInt(num));
+    if (Number.isFinite(num) && num > 0) {
+      faker.seed(parseInt(num, 10));
       const data = ({
         id: num,
         logID: num,
@@ -712,7 +840,7 @@ const appRouter = function (app, db) {
   app.get('/v2.0/capacity/:num', (req, res) => {
     const num = req.params.num;
     const capacitySeed = faker.random.number();
-    faker.seed(parseInt(num));
+    faker.seed(parseInt(num, 10));
     const maximum = faker.random.number() % 200;
     faker.seed(capacitySeed);
     const current = faker.random.number() % maximum;
@@ -731,7 +859,190 @@ const appRouter = function (app, db) {
 
 
   /**
- * @api {post} /v2.0/checklist/ Create New Checklist
+   * @api {get} /v2.0/contacts/ Request Contacts
+   * @apiVersion 2.0.1
+   * @apiName GetContacts
+   * @apiGroup Contacts
+   *
+   * @apiSuccess {Object} contacts Contacts
+   *
+   * @apiFailure {String} message 'Failed to create new contact.'
+   */
+  app.get('/v2.0/contacts', (req, res) => {
+    db.collection(CONTACTS_COLLECTION).find({}).toArray((err, docs) => {
+      if (err) {
+        handleError(res, err.message, 'Failed to get contacts.');
+      } else {
+        res.status(200).json(docs);
+      }
+    });
+  });
+
+  /**
+ * @api {post} /v2.0/contacts/ Create New Contact
+ * @apiVersion 2.0.1
+ * @apiName PostContacts
+ * @apiGroup Contacts
+ *
+ * @apiParam {object} body New Contacts
+ *
+ * @apiSuccess {Number} Contact ID
+ *
+ * @apiFailure {String} message 'Failed to create new contact.'
+ */
+  app.post('/v2.0/contacts', (req, res) => {
+    const newContact = req.body;
+    newContact.createDate = new Date();
+
+    if (!(req.body.firstName || req.body.lastName)) {
+      handleError(res, 'Invalid user input', 'Must provide a first or last name.', 400);
+    }
+
+    db.collection(CONTACTS_COLLECTION).insertOne(newContact, (err, doc) => {
+      if (err) {
+        handleError(res, err.message, 'Failed to create new contact.');
+      } else {
+        res.status(201).json(doc.ops[0]);
+      }
+    });
+  });
+
+
+  /**
+ * @api {get} /v2.0/events/ list of public events starting in the future
+ * @apiVersion 2.0.1
+ * @apiName PostContacts
+ * @apiGroup Contacts
+ *
+ * @apiSuccess {Object} Events
+ *
+ * @apiFailure {String} message 'Failed to create new contact.'
+ */
+  app.get('/v2.0/events', (req, res) => {
+    Event.find({viewPublic: true, startDatetime: { $gte: new Date() }},
+      _eventListProjection, (err, events) => {
+      let eventsArr = [];
+      if (err) {
+        return res.status(500).send({message: err.message});
+      }
+      if (events) {
+        events.forEach(event => {
+          eventsArr.push(event);
+        });
+      }
+      res.send(eventsArr);
+    });
+  });
+
+  /**
+ * @api {get} /v2.0/events/admin list of all events, public and private (admin only)
+ * @apiVersion 2.0.1
+ * @apiName PostContacts
+ * @apiGroup Contacts
+ *
+ *
+ * @apiSuccess {Object} Events
+ *
+ * @apiFailure {String} message 'Failed'
+ */
+  app.get('/v2.0/events/admin', jwtCheck, adminCheck, (req, res) => {
+    Event.find({}, _eventListProjection, (err, events) => {
+      let eventsArr = [];
+      if (err) {
+        return res.status(500).send({message: err.message});
+      }
+      if (events) {
+        events.forEach(event => {
+          eventsArr.push(event);
+        });
+      }
+      res.send(eventsArr);
+    });
+  });
+
+
+
+  /**
+ * @api {get} /v2.0/event/:id event by event ID
+ * @apiVersion 2.0.1
+ * @apiName PostContacts
+ * @apiGroup Contacts
+ *
+ * @apiParam {Number} id Event ID
+ *
+ * @apiSuccess {Object} Events
+ *
+ * @apiFailure {String} message 'Failed'
+ */
+  app.get('/v2.0/event/:id', jwtCheck, (req, res) => {
+    Event.findById(req.params.id, (err, event) => {
+      if (err) {
+        return res.status(500).send({message: err.message});
+      }
+      if (!event) {
+        return res.status(400).send({message: 'Event not found.'});
+      }
+      res.send(event);
+    });
+  });
+
+
+ /**
+ * @api {get} /v2.0/event/:eventId/rsvps RSVPs by event ID
+ * @apiVersion 2.0.1
+ * @apiName PostContacts
+ * @apiGroup Contacts
+ *
+ * @apiParam {Number} id Event ID
+ *
+ * @apiSuccess {Object} Rsvps
+ *
+ * @apiFailure {String} message 'Failed'
+ */
+  app.get('/v2.0/event/:eventId/rsvps', jwtCheck, (req, res) => {
+    Rsvp.find({eventId: req.params.eventId}, (err, rsvps) => {
+      let rsvpsArr = [];
+      if (err) {
+        return res.status(500).send({message: err.message});
+      }
+      if (rsvps) {
+        rsvps.forEach(rsvp => {
+          rsvpsArr.push(rsvp);
+        });
+      }
+      res.send(rsvpsArr);
+    });
+  });
+
+  /**
+ * @api {get} /v2.0/checklists/ list of public checklists starting in the future
+ * @apiVersion 2.0.1
+ * @apiName GetChecklists
+ * @apiGroup Checklists
+ *
+ * @apiSuccess {Object} Checklists
+ *
+ * @apiFailure {String} message 'Failed to create new contact.'
+ */
+  app.get('/v2.0/checklists', (req, res) => {
+    Checklist.find({viewPublic: true, startDatetime: { $gte: new Date() }},
+      _checklistListProjection, (err, checklists) => {
+      let checklistArr = [];
+      if (err) {
+        return res.status(500).send({message: err.message});
+      }
+      if (checklists) {
+        checklists.forEach(checklist => {
+          checklistArr.push(checklist);
+        });
+      }
+      res.send(checklistArr);
+    });
+  });
+
+
+  /**
+ * @api {post} /v2.0/checklists/ Create New Checklist
  * @apiVersion 2.0.1
  * @apiName PostChecklist
  * @apiGroup Checklists
@@ -761,6 +1072,63 @@ const appRouter = function (app, db) {
   });
 
   /**
+ * @api {get} /v2.0/checklists/admin list of all checklists, public and private (admin only)
+ * @apiVersion 2.0.1
+ * @apiName GetChecklists
+ * @apiGroup Checklists
+ *
+ *
+ * @apiSuccess {Object} Events
+ *
+ * @apiFailure {String} message 'Failed'
+ */
+  app.get('/v2.0/checklists/admin', jwtCheck, adminCheck, (req, res) => {
+    Checklist.find({}, _checklistListProjection, (err, checklists) => {
+      let checklistsArr = [];
+      if (err) {
+        return res.status(500).send({message: err.message});
+      }
+      if (checklists) {
+        checklists.forEach(checklist => {
+          checklistArr.push(checklist);
+        });
+      }
+      res.send(checklistArr);
+    });
+  });
+
+
+  /**
+ * @api {get} /v2.0/checklists/:id Request Checklist By Venue ID
+ * @apiVersion 2.0.1
+ * @apiName GetChecklistByVenueID
+ * @apiGroup Checklists
+ *
+ * @apiParam {Number} id Venue unique ID.
+ *
+ * @apiSuccess {Number} id ID of the Checklist.
+ * @apiSuccess {Number} checklistID ID of the Checklist.
+ * @apiSuccess {Number} venueID ID of the Venue.
+ * @apiSuccess {Object[]} venue Venue Details.
+ * @apiSuccess {Number} userID ID of the User.
+ * @apiSuccess {Object[]} user  User details.
+ * @apiSuccess {String} createdAt Timestamp of Request.
+ * @apiSuccess {Number} createdBy User ID of generating Checklist.
+ */
+ app.get('/v2.0/checklist/:id', jwtCheck, (req, res) => {
+    Checklist.findById(req.params.id, (err, checklist) => {
+      if (err) {
+        return res.status(500).send({message: err.message});
+      }
+      if (!checklist) {
+        return res.status(400).send({message: 'Checklist not found.'});
+      }
+      res.send(checklist);
+    });
+  });
+
+
+  /**
  * @api {get} /v2.0/checklists/:id Request Checklist By Venue ID
  * @apiVersion 2.0.1
  * @apiName GetChecklistByVenueID
@@ -779,13 +1147,12 @@ const appRouter = function (app, db) {
  */
   app.get('/v2.0/checklists/:num', (req, res) => {
     const num = req.params.num;
-    checklists = [];
-    faker.seed(parseInt(num));
-    const venueID = faker.random.number();
+    const checklists = [];
+    faker.seed(parseInt(num, 10));
     const userID = faker.random.number();
     const checklistCount = faker.random.number() % 30;
-    for (i = 0; i <= checklistCount; i++) {
-      checklistID = faker.random.number();
+    for (let i = 0; i <= checklistCount; i += 1) {
+      const checklistID = faker.random.number();
       checklists.push(checklist(checklistID));
     }
     const data = ({
@@ -820,13 +1187,12 @@ const appRouter = function (app, db) {
  */
   app.get('/v2.0/checklists/:num/recent/', (req, res) => {
     const num = req.params.num;
-    checklists = [];
-    faker.seed(parseInt(num));
-    const venueID = faker.random.number();
+    const checklists = [];
+    faker.seed(parseInt(num, 10));
     const userID = faker.random.number();
     const checklistCount = faker.random.number() % 30;
-    for (i = 0; i <= checklistCount; i++) {
-      checklistID = faker.random.number();
+    for (let i = 0; i <= checklistCount; i += 1) {
+      const checklistID = faker.random.number();
       checklists.push(checklist(checklistID));
     }
     const fromDate = new Date();
@@ -846,7 +1212,8 @@ const appRouter = function (app, db) {
   });
 
   /**
- * @api {get} /v2.0/checklists/:id/from/:month/:day/:year/to/:month/:day/:year/ Request Recent Checklist By Venue ID And Date Range
+ * @api {get} /v2.0/checklists/:id/from/:month/:day/:year/to/:month/:day/:year/
+  Request Recent Checklist By Venue ID And Date Range
  * @apiVersion 2.0.1
  * @apiName GetChecklistsDateRange
  * @apiGroup Checklists
@@ -866,23 +1233,23 @@ const appRouter = function (app, db) {
  */
   app.get('/v2.0/checklists/:num/from/:from_month/:from_day/:from_year/to/', (req, res) => {
     const num = req.params.num;
-    const from_month = req.params.from_month;
-    const from_day = req.params.from_day;
-    const from_year = req.params.from_year;
-    const fromDate = new Date(from_year, from_month - 1, from_day);
+    const fromMonth = req.params.from_month;
+    const fromDay = req.params.from_day;
+    const fromYear = req.params.from_year;
+    const fromDate = new Date(fromYear, fromMonth - 1, fromDay);
 
-    const to_month = req.params.from_month;
-    const to_day = req.params.from_day;
-    const to_year = req.params.from_year;
-    const toDate = new Date(to_year, to_month - 1, to_day);
+    const toMonth = req.params.from_month;
+    const toDay = req.params.from_day;
+    const toYear = req.params.from_year;
+    const toDate = new Date(toYear, toMonth - 1, toDay);
 
-    checklists = [];
-    faker.seed(parseInt(num));
+    const checklists = [];
+    faker.seed(parseInt(num, 10));
     const venueID = faker.random.number();
     const userID = faker.random.number();
     const checklistCount = faker.random.number() % 30;
-    for (i = 0; i <= checklistCount; i++) {
-      checklistID = faker.random.number();
+    for (let i = 0; i <= checklistCount; i += 1) {
+      const checklistID = faker.random.number();
       checklists.push(checklist(checklistID));
     }
     const data = ({
@@ -917,13 +1284,13 @@ const appRouter = function (app, db) {
  */
   app.get('/v2.0/checklist/:num', (req, res) => {
     const num = req.params.num;
-    faker.seed(parseInt(num));
+    faker.seed(parseInt(num, 10));
     const venueID = faker.random.number();
     const userID = faker.random.number();
     const questionCount = 15;
     const questions = [];
 
-    for (i = 1; i <= questionCount; i++) {
+    for (let i = 1; i <= questionCount; i += 1) {
       const question = ({
         id: i,
         questionID: i,
@@ -963,14 +1330,14 @@ const appRouter = function (app, db) {
  */
   app.get('/v2.0/checklist/:num/pdf/', (req, res) => {
     const num = req.params.num;
-    faker.seed(parseInt(num));
+    faker.seed(parseInt(num, 10));
     const venueID = faker.random.number();
     const userID = faker.random.number();
     const date = faker.date.recent();
     const questionCount = 15;
     const questions = [];
 
-    for (i = 1; i <= questionCount; i++) {
+    for (let i = 1; i <= questionCount; i += 1) {
       const question = ({
         id: i,
         questionID: i,
@@ -1000,8 +1367,6 @@ const appRouter = function (app, db) {
     });
 
     const hummus = require('hummus');
-    // var pdfWriter = hummus.createWriter(new hummus.PDFStreamForResponse(res));
-    const inFilePath = '';
 
     const pdfWriter = hummus.createWriterToModify(
       new hummus.PDFRStreamForFile('./v2.0/assets/pdfs/fp-buildingsafetychecklist.pdf'),
@@ -1287,8 +1652,7 @@ const appRouter = function (app, db) {
         data.ipAddress,
         460, 15,
         verySmallFont,
-      )
-    ; // end writeText
+      ); // end writeText
 
     console.log((data.questions[0].answer) ? 'X' : '0');
     console.log((!data.questions[0].answer) ? 'X' : '0');
@@ -1309,160 +1673,9 @@ const appRouter = function (app, db) {
   });
 
 
-  /**
-   * @api {get} /v2.0/contacts/ Request Contacts
-   * @apiVersion 2.0.1
-   * @apiName GetContacts
-   * @apiGroup Contacts
-   *
-   * @apiSuccess {Object} contacts Contacts
-   *
-   * @apiFailure {String} message 'Failed to create new contact.'
-   */
-  app.get('/v2.0/contacts', (req, res) => {
-    db.collection(CONTACTS_COLLECTION).find({}).toArray((err, docs) => {
-      if (err) {
-        handleError(res, err.message, 'Failed to get contacts.');
-      } else {
-        res.status(200).json(docs);
-      }
-    });
-  });
 
-  /**
- * @api {post} /v2.0/contacts/ Create New Contact
- * @apiVersion 2.0.1
- * @apiName PostContacts
- * @apiGroup Contacts
- *
- * @apiParam {object} body New Contacts
- *
- * @apiSuccess {Number} Contact ID
- *
- * @apiFailure {String} message 'Failed to create new contact.'
- */
-  app.post('/v2.0/contacts', (req, res) => {
-    const newContact = req.body;
-    newContact.createDate = new Date();
-
-    if (!(req.body.firstName || req.body.lastName)) {
-      handleError(res, 'Invalid user input', 'Must provide a first or last name.', 400);
-    }
-
-    db.collection(CONTACTS_COLLECTION).insertOne(newContact, (err, doc) => {
-      if (err) {
-        handleError(res, err.message, 'Failed to create new contact.');
-      } else {
-        res.status(201).json(doc.ops[0]);
-      }
-    });
-  });
 }; // end appRouter;
 
-
-/** ***
-*
-* Static Functions
-*
-**** */
-
-function address(num) {
-  faker.seed(parseInt(num));
-  const data = ({
-    id: num,
-    adddressID: num,
-    streetAddress: faker.address.streetAddress(),
-    secondaryAddress: faker.address.secondaryAddress(),
-    city: faker.address.city(),
-    county: faker.address.county(),
-    state: faker.address.state(),
-    zipCode: faker.address.zipCode(),
-    country: faker.address.country(),
-    phoneNumber: faker.phone.phoneNumber(),
-  });
-  return data;
-}
-
-function user(num) {
-  faker.seed(parseInt(num));
-  const addressID = faker.random.number();
-  const data = ({
-    id: num,
-    userID: num,
-    prefix: faker.name.prefix(),
-    firstName: faker.name.firstName(),
-    lastName: faker.name.lastName(),
-    suffix: faker.name.suffix(),
-    username: faker.internet.userName(),
-    email: faker.internet.email(),
-    password: faker.internet.password(),
-    certificate: certificate(num),
-    phoneNumber: faker.phone.phoneNumber(),
-    altPhoneNumber: faker.phone.phoneNumber(),
-    addressID,
-    address: address(addressID),
-    createdAt: faker.date.past(),
-    createdBy: faker.random.number(),
-  });
-  return data;
-}
-
-function certificate(num) {
-  faker.seed(parseInt(num));
-  const certificateID = faker.random.number();
-  const data = ({
-    id: certificateID,
-    certificateID,
-    number: faker.random.alphaNumeric(15),
-    expiresAt: faker.date.future(),
-    createdAt: faker.date.past(),
-    createdBy: faker.random.number(),
-  });
-  return data;
-}
-
-function file(num) {
-  faker.seed(parseInt(num));
-  const data = ({
-    id: num,
-    fileID: num,
-    fileName: faker.system.commonFileName(),
-    fileType: faker.system.commonFileType(),
-    fileExtension: faker.system.commonFileExt(),
-    createdAt: faker.date.past(),
-    createdBy: faker.random.number(),
-  });
-  return data;
-}
-
-function venue(num) {
-  faker.seed(parseInt(num));
-  const addressID = faker.random.number();
-  const data = ({
-    id: num,
-    venueID: num,
-    name: faker.company.companyName(),
-    email: faker.internet.email(),
-    addressID,
-    address: address(addressID),
-    createdAt: faker.date.past(),
-    createdBy: faker.random.number(),
-  });
-  return data;
-}
-
-function checklist(num) {
-  faker.seed(parseInt(num));
-  const data = ({
-    id: num,
-    fileID: num,
-    ipAddress: faker.internet.ip(),
-    userAgent: faker.internet.userAgent(),
-    createdAt: faker.date.past(),
-    createdBy: faker.random.number(),
-  });
-  return data;
-}
 
 module.exports = appRouter;
 

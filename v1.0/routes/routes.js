@@ -6,7 +6,111 @@ const version = '1.1.3';
 faker.seed(42);
 
 const appRouter = function (app) {
-/**
+  /** ***
+*
+* Static Functions
+*
+**** */
+
+  function address(num) {
+    faker.seed(parseInt(num, 10));
+    const data = ({
+      ID: num,
+      adddressID: num,
+      streetAddress: faker.address.streetAddress(),
+      secondaryAddress: faker.address.secondaryAddress(),
+      city: faker.address.city(),
+      county: faker.address.county(),
+      state: faker.address.state(),
+      zipCode: faker.address.zipCode(),
+      country: faker.address.country(),
+      phoneNumber: faker.phone.phoneNumber(),
+    });
+    return data;
+  }
+
+  function user(num) {
+    faker.seed(parseInt(num, 10));
+    const addressID = faker.random.number();
+    const data = ({
+      ID: num,
+      userID: num,
+      prefix: faker.name.prefix(),
+      firstName: faker.name.firstName(),
+      lastName: faker.name.lastName(),
+      suffix: faker.name.suffix(),
+      username: faker.internet.userName(),
+      email: faker.internet.email(),
+      password: faker.internet.password(),
+      certificate: certificate(num),
+      phoneNumber: faker.phone.phoneNumber(),
+      altPhoneNumber: faker.phone.phoneNumber(),
+      addressID,
+      address: address(addressID),
+      createdAt: faker.date.past(),
+      createdBy: faker.random.number(),
+    });
+    return data;
+  }
+
+  function certificate(num) {
+    faker.seed(parseInt(num, 10));
+    const certificateID = faker.random.number();
+    const data = ({
+      ID: certificateID,
+      certificateID,
+      number: faker.random.alphaNumeric(15),
+      expiresAt: faker.date.future(),
+      createdAt: faker.date.past(),
+      createdBy: faker.random.number(),
+    });
+    return data;
+  }
+
+  function file(num) {
+    faker.seed(parseInt(num, 10));
+    const data = ({
+      ID: num,
+      fileID: num,
+      fileName: faker.system.commonFileName(),
+      fileType: faker.system.commonFileType(),
+      fileExtension: faker.system.commonFileExt(),
+      createdAt: faker.date.past(),
+      createdBy: faker.random.number(),
+    });
+    return data;
+  }
+
+  function venue(num) {
+    faker.seed(parseInt(num, 10));
+    const addressID = faker.random.number();
+    const data = ({
+      ID: num,
+      venueID: num,
+      name: faker.company.companyName(),
+      email: faker.internet.email(),
+      addressID,
+      address: address(addressID),
+      createdAt: faker.date.past(),
+      createdBy: faker.random.number(),
+    });
+    return data;
+  }
+
+  function checklist(num) {
+    faker.seed(parseInt(num, 10));
+    const data = ({
+      ID: num,
+      fileID: num,
+      ipAddress: faker.internet.ip(),
+      userAgent: faker.internet.userAgent(),
+      createdAt: faker.date.past(),
+      createdBy: faker.random.number(),
+    });
+    return data;
+  }
+
+  /**
  * @api {get} /v1.0/ Welcome Message
  * @apiVersion 1.1.3
  * @apiName Welcome
@@ -77,8 +181,8 @@ const appRouter = function (app) {
     const users = [];
     const num = req.params.num;
     const addressID = faker.random.number();
-    if (isFinite(num) && num > 0) {
-      for (let i = 0; i <= num - 1; i++) {
+    if (Number.isFinite(num) && num > 0) {
+      for (let i = 0; i <= num - 1; i += 1) {
         const userID = faker.random.number();
         users.push({
           ID: userID,
@@ -123,8 +227,8 @@ const appRouter = function (app) {
     const users = [];
     const num = req.params.num;
 
-    if (isFinite(num) && num > 0) {
-      faker.seed(parseInt(num));
+    if (Number.isFinite(num) && num > 0) {
+      faker.seed(parseInt(num, 10));
       const addressID = faker.random.number();
       user = ({
         ID: num,
@@ -189,8 +293,8 @@ const appRouter = function (app) {
   app.get('/v1.0/business/:num', (req, res) => {
     const num = req.params.num;
 
-    if (isFinite(num) && num > 0) {
-      faker.seed(parseInt(num));
+    if (Number.isFinite(num) && num > 0) {
+      faker.seed(parseInt(num, 10));
       const addressID = faker.random.number();
       const data = ({
         ID: num,
@@ -254,8 +358,8 @@ const appRouter = function (app) {
   app.get('/v1.0/venue/:num', (req, res) => {
     const num = req.params.num;
 
-    if (isFinite(num) && num > 0) {
-      faker.seed(parseInt(num));
+    if (Number.isFinite(num) && num > 0) {
+      faker.seed(parseInt(num, 10));
       const addressID = faker.random.number();
       const data = ({
         ID: num,
@@ -307,8 +411,8 @@ const appRouter = function (app) {
  */
   app.get('/v1.0/address/:num', (req, res) => {
     const num = req.params.num;
-    if (isFinite(num) && num > 0) {
-      faker.seed(parseInt(num));
+    if (Number.isFinite(num) && num > 0) {
+      faker.seed(parseInt(num, 10));
       const data = (address(num));
       res.status(200).send(data);
     } else {
@@ -335,8 +439,8 @@ const appRouter = function (app) {
 
   app.get('/v1.0/owner/:num', (req, res) => {
     const num = req.params.num;
-    if (isFinite(num) && num > 0) {
-      faker.seed(parseInt(num));
+    if (Number.isFinite(num) && num > 0) {
+      faker.seed(parseInt(num, 10));
       const userID = faker.random.number();
       const data = ({
         ID: num,
@@ -366,8 +470,8 @@ const appRouter = function (app) {
  */
   app.get('/v1.0/owns/:num', (req, res) => {
     const num = req.params.num;
-    if (isFinite(num) && num > 0) {
-      faker.seed(parseInt(num));
+    if (Number.isFinite(num) && num > 0) {
+      faker.seed(parseInt(num, 10));
       const data = ({
         ID: num,
         businessID: faker.random.number(),
@@ -397,8 +501,8 @@ const appRouter = function (app) {
  */
   app.get('/v1.0/manager/:num', (req, res) => {
     const num = req.params.num;
-    if (isFinite(num) && num > 0) {
-      faker.seed(parseInt(num));
+    if (Number.isFinite(num) && num > 0) {
+      faker.seed(parseInt(num, 10));
       const data = ({
         ID: num,
         userID: faker.random.number(),
@@ -426,8 +530,8 @@ const appRouter = function (app) {
  */
   app.get('/v1.0/manages/:num', (req, res) => {
     const num = req.params.num;
-    if (isFinite(num) && num > 0) {
-      faker.seed(parseInt(num));
+    if (Number.isFinite(num) && num > 0) {
+      faker.seed(parseInt(num, 10));
       const venueID = faker.random.number();
       const data = ({
         ID: num,
@@ -456,11 +560,11 @@ const appRouter = function (app) {
 
   app.get('/v1.0/employees/:num', (req, res) => {
     const num = req.params.num;
-    if (isFinite(num) && num > 0) {
-      faker.seed(parseInt(num));
+    if (Number.isFinite(num) && num > 0) {
+      faker.seed(parseInt(num, 10));
       const employeeCount = faker.random.number() % 10;
       const employees = [];
-      for (i = 0; i <= employeeCount; i++) {
+      for (let i = 0; i <= employeeCount; i += 1) {
         const userID = faker.random.number();
         employees.push({
           ID: userID,
@@ -497,8 +601,8 @@ const appRouter = function (app) {
 
   app.get('/v1.0/employed/:num', (req, res) => {
     const num = req.params.num;
-    if (isFinite(num) && num > 0) {
-      faker.seed(parseInt(num));
+    if (Number.isFinite(num) && num > 0) {
+      faker.seed(parseInt(num, 10));
       const data = ({
         ID: num,
         userID: num,
@@ -526,7 +630,7 @@ const appRouter = function (app) {
   app.get('/v1.0/files/', (req, res) => {
     const files = [];
     const fileCount = faker.random.number() % 20;
-    for (i = 0; i <= fileCount; i++) {
+    for (let i = 0; i <= fileCount; i += 1) {
       fileID = faker.random.number();
       files.push(file(fileID));
     }
@@ -575,8 +679,8 @@ const appRouter = function (app) {
 
   app.get('/v1.0/file/:num', (req, res) => {
     const num = req.params.num;
-    if (isFinite(num) && num > 0) {
-      faker.seed(parseInt(num));
+    if (Number.isFinite(num) && num > 0) {
+      faker.seed(parseInt(num, 10));
       const data = (file(num));
       res.status(200).send(data);
     } else {
@@ -598,7 +702,7 @@ const appRouter = function (app) {
     const logs = [];
     const num = req.params.num;
     const count = 20;
-    for (i = 0; i <= count; i++) {
+    for (let i = 0; i <= count; i += 1) {
       logs.push({
         ID: num,
         logID: num,
@@ -637,8 +741,8 @@ const appRouter = function (app) {
  */
   app.get('/v1.0/log/:num', (req, res) => {
     const num = req.params.num;
-    if (isFinite(num) && num > 0) {
-      faker.seed(parseInt(num));
+    if (Number.isFinite(num) && num > 0) {
+      faker.seed(parseInt(num, 10));
       const data = ({
         ID: num,
         logID: num,
@@ -675,7 +779,7 @@ const appRouter = function (app) {
   app.get('/v1.0/capacity/:num', (req, res) => {
     const num = req.params.num;
     const capacitySeed = faker.random.number();
-    faker.seed(parseInt(num));
+    faker.seed(parseInt(num, 10));
     const maximum = faker.random.number() % 200;
     faker.seed(capacitySeed);
     const current = faker.random.number() % maximum;
@@ -712,11 +816,11 @@ const appRouter = function (app) {
   app.get('/v1.0/checklists/:num', (req, res) => {
     const num = req.params.num;
     checklists = [];
-    faker.seed(parseInt(num));
+    faker.seed(parseInt(num, 10));
     const venueID = faker.random.number();
     const userID = faker.random.number();
     const checklistCount = faker.random.number() % 30;
-    for (i = 0; i <= checklistCount; i++) {
+    for (let i = 0; i <= checklistCount; i += 1) {
       checklistID = faker.random.number();
       checklists.push(checklist(checklistID));
     }
@@ -753,11 +857,11 @@ const appRouter = function (app) {
   app.get('/v1.0/checklists/:num/recent/', (req, res) => {
     const num = req.params.num;
     checklists = [];
-    faker.seed(parseInt(num));
+    faker.seed(parseInt(num, 10));
     const venueID = faker.random.number();
     const userID = faker.random.number();
     const checklistCount = faker.random.number() % 30;
-    for (i = 0; i <= checklistCount; i++) {
+    for (let i = 0; i <= checklistCount; i += 1) {
       checklistID = faker.random.number();
       checklists.push(checklist(checklistID));
     }
@@ -809,11 +913,11 @@ const appRouter = function (app) {
     const toDate = new Date(to_year, to_month - 1, to_day);
 
     checklists = [];
-    faker.seed(parseInt(num));
+    faker.seed(parseInt(num, 10));
     const venueID = faker.random.number();
     const userID = faker.random.number();
     const checklistCount = faker.random.number() % 30;
-    for (i = 0; i <= checklistCount; i++) {
+    for (let i = 0; i <= checklistCount; i += 1) {
       checklistID = faker.random.number();
       checklists.push(checklist(checklistID));
     }
@@ -849,13 +953,13 @@ const appRouter = function (app) {
  */
   app.get('/v1.0/checklist/:num', (req, res) => {
     const num = req.params.num;
-    faker.seed(parseInt(num));
+    faker.seed(parseInt(num, 10));
     const venueID = faker.random.number();
     const userID = faker.random.number();
     const questionCount = 15;
     const questions = [];
 
-    for (i = 1; i <= questionCount; i++) {
+    for (let i = 1; i <= questionCount; i += 1) {
       const question = ({
         ID: i,
         questionID: i,
@@ -895,14 +999,14 @@ const appRouter = function (app) {
  */
   app.get('/v1.0/checklist/:num/pdf/', (req, res) => {
     const num = req.params.num;
-    faker.seed(parseInt(num));
+    faker.seed(parseInt(num, 10));
     const venueID = faker.random.number();
     const userID = faker.random.number();
     const date = faker.date.recent();
     const questionCount = 15;
     const questions = [];
 
-    for (i = 1; i <= questionCount; i++) {
+    for (let i = 1; i <= questionCount; i += 1) {
       const question = ({
         ID: i,
         questionID: i,
@@ -1241,110 +1345,6 @@ const appRouter = function (app) {
   });
 }; // end appRouter;
 
-
-/** ***
-*
-* Static Functions
-*
-**** */
-
-function address(num) {
-  faker.seed(parseInt(num));
-  const data = ({
-    ID: num,
-    adddressID: num,
-    streetAddress: faker.address.streetAddress(),
-    secondaryAddress: faker.address.secondaryAddress(),
-    city: faker.address.city(),
-    county: faker.address.county(),
-    state: faker.address.state(),
-    zipCode: faker.address.zipCode(),
-    country: faker.address.country(),
-    phoneNumber: faker.phone.phoneNumber(),
-  });
-  return data;
-}
-
-function user(num) {
-  faker.seed(parseInt(num));
-  const addressID = faker.random.number();
-  const data = ({
-    ID: num,
-    userID: num,
-    prefix: faker.name.prefix(),
-    firstName: faker.name.firstName(),
-    lastName: faker.name.lastName(),
-    suffix: faker.name.suffix(),
-    username: faker.internet.userName(),
-    email: faker.internet.email(),
-    password: faker.internet.password(),
-    certificate: certificate(num),
-    phoneNumber: faker.phone.phoneNumber(),
-    altPhoneNumber: faker.phone.phoneNumber(),
-    addressID,
-    address: address(addressID),
-    createdAt: faker.date.past(),
-    createdBy: faker.random.number(),
-  });
-  return data;
-}
-
-function certificate(num) {
-  faker.seed(parseInt(num));
-  const certificateID = faker.random.number();
-  const data = ({
-    ID: certificateID,
-    certificateID,
-    number: faker.random.alphaNumeric(15),
-    expiresAt: faker.date.future(),
-    createdAt: faker.date.past(),
-    createdBy: faker.random.number(),
-  });
-  return data;
-}
-
-function file(num) {
-  faker.seed(parseInt(num));
-  const data = ({
-    ID: num,
-    fileID: num,
-    fileName: faker.system.commonFileName(),
-    fileType: faker.system.commonFileType(),
-    fileExtension: faker.system.commonFileExt(),
-    createdAt: faker.date.past(),
-    createdBy: faker.random.number(),
-  });
-  return data;
-}
-
-function venue(num) {
-  faker.seed(parseInt(num));
-  const addressID = faker.random.number();
-  const data = ({
-    ID: num,
-    venueID: num,
-    name: faker.company.companyName(),
-    email: faker.internet.email(),
-    addressID,
-    address: address(addressID),
-    createdAt: faker.date.past(),
-    createdBy: faker.random.number(),
-  });
-  return data;
-}
-
-function checklist(num) {
-  faker.seed(parseInt(num));
-  const data = ({
-    ID: num,
-    fileID: num,
-    ipAddress: faker.internet.ip(),
-    userAgent: faker.internet.userAgent(),
-    createdAt: faker.date.past(),
-    createdBy: faker.random.number(),
-  });
-  return data;
-}
 
 module.exports = appRouter;
 
