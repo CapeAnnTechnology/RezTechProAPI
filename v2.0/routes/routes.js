@@ -21,6 +21,9 @@ const jwks = require('jwks-rsa');
 const Event = require('../models/Event');
 const Rsvp = require('../models/Rsvp');
 const Checklist = require('../models/Checklist');
+const Business = require('../models/Business');
+const Venue = require('../models/Venue');
+const Log = require('../models/Log');
 
 const appRouter = function (app, db) {
 /** ***
@@ -166,7 +169,9 @@ const appRouter = function (app, db) {
 
  const _eventListProjection = 'title startDatetime endDatetime viewPublic';
  const _checklistListProjection = 'title startDatetime endDatetime viewPublic';
-
+ const _businessListProjection = 'title location phoneNumber viewPublic';
+ const _venueListProjection = 'title location phoneNumber viewPublic';
+ const _logListProjection = 'action ipAddress userAgent datetime viewPublic';
 
   /**
  * @api {get} /v2.0/ Welcome Message
@@ -317,27 +322,26 @@ const appRouter = function (app, db) {
 
   /**
  * @api {get} /v2.0/business/ Request Business [Random]
- * @apiVersion 2.0.0
+ * @apiVersion 2.0.3
  * @apiName GetBusiness
  * @apiGroup Businesses
  *
  * @apiSuccess {String} firstname Firstname of the User.
  * @apiSuccess {String} lastname  Lastname of the User.
  */
-  app.get('/v2.0/business', (req, res) => {
-    const businessID = faker.random.number();
-    const addressID = faker.random.number();
-    const data = ({
-      id: businessID,
-      businessID,
-      name: faker.company.companyName(),
-      email: faker.internet.email(),
-      addressID,
-      address: address(addressID),
-      createdAt: faker.date.past(),
-      createdBy: faker.random.number(),
+  app.get('/v2.0/businesses', (req, res) => {
+    Business.find({}, _businessListProjection, (err, businesses) => {
+      let businessArr = [];
+      if (err) {
+        return res.status(500).send({message: err.message});
+      }
+      if (businesses) {
+        businesses.forEach(business => {
+          businessArr.push(business);
+        });
+      }
+      res.send(businessArr);
     });
-    res.status(200).send(data);
   });
 
   /**
@@ -351,33 +355,47 @@ const appRouter = function (app, db) {
  * @apiSuccess {String} createdAt Timestamp of User creation.
  * @apiSuccess {Number} createdBy User ID of generating User.
  */
-  app.get('/v2.0/business/:num', (req, res) => {
-    const num = req.params.num;
-
-    if (Number.isFinite(num) && num > 0) {
-      faker.seed(parseInt(num, 10));
-      const addressID = faker.random.number();
-      const data = ({
-        id: num,
-        name: faker.company.companyName(),
-        email: faker.internet.email(),
-        phoneNumber: faker.phone.phoneNumber(),
-        faxNumber: faker.phone.phoneNumber(),
-        addressID,
-        address: address(addressID),
-        createdAt: faker.date.past(),
-        createdBy: faker.random.number(),
-
-      });
-
-      res.status(200).send(data);
-    } else {
-      res.status(400).send({ message: 'invalid ID supplied' });
-    }
+  app.get('/v2.0/business/:id', jwtCheck, (req, res) => {
+    Business.findById(req.params.id, (err, business) => {
+      if (err) {
+        return res.status(500).send({message: err.message});
+      }
+      if (!business) {
+        return res.status(400).send({message: 'Business not found.'});
+      }
+      res.send(business);
+    });
   });
 
   /**
- * @api {get} /v2.0/venue/:id Request Venue [Random]
+ * @api {get} /v2.0/business/:businessId/venues Venues by business ID
+ * @apiVersion 2.0.1
+ * @apiName PostContacts
+ * @apiGroup Contacts
+ *
+ * @apiParam {Number} id Business ID
+ *
+ * @apiSuccess {Object} Venues
+ *
+ * @apiFailure {String} message 'Failed'
+ */
+  app.get('/v2.0/business/:businessId/venues', jwtCheck, (req, res) => {
+    Venue.find({businessId: req.params.businessId}, (err, venues) => {
+      let venuesArr = [];
+      if (err) {
+        return res.status(500).send({message: err.message});
+      }
+      if (venues) {
+        venues.forEach(venue => {
+          venuesArr.push(venue);
+        });
+      }
+      res.send(venuesArr);
+    });
+  });
+
+  /**
+ * @api {get} /v2.0/venues Request Venues [List]
  * @apiVersion 2.0.1
  * @apiName GetVenue
  * @apiGroup Venues
@@ -387,20 +405,19 @@ const appRouter = function (app, db) {
  * @apiSuccess {String} createdAt Timestamp of User creation.
  * @apiSuccess {Number} createdBy User ID of generating User.
  */
-  app.get('/v2.0/venue', (req, res) => {
-    const venueID = faker.random.number();
-    const addressID = faker.random.number();
-    const data = ({
-      id: venueID,
-      venueID,
-      name: faker.company.companyName(),
-      email: faker.internet.email(),
-      addressID,
-      address: address(addressID),
-      createdAt: faker.date.past(),
-      createdBy: faker.random.number(),
+  app.get('/v2.0/venues', (req, res) => {
+    Venue.find({}, _venueListProjection, (err, venues) => {
+      let venueArr = [];
+      if (err) {
+        return res.status(500).send({message: err.message});
+      }
+      if (venues) {
+        venues.forEach(venue => {
+          venueArr.push(venue);
+        });
+      }
+      res.send(venueArr);
     });
-    res.status(200).send(data);
   });
 
   /**
@@ -416,28 +433,16 @@ const appRouter = function (app, db) {
  * @apiSuccess {String} createdAt Timestamp of User creation.
  * @apiSuccess {Number} createdBy User ID of generating User.
  */
-  app.get('/v2.0/venue/:num', (req, res) => {
-    const num = req.params.num;
-
-    if (Number.isFinite(num) && num > 0) {
-      faker.seed(parseInt(num, 10));
-      const addressID = faker.random.number();
-      const data = ({
-        id: num,
-        venueID: num,
-        name: faker.company.companyName(),
-        email: faker.internet.email(),
-        phoneNumber: faker.phone.phoneNumber(),
-        faxNumber: faker.phone.phoneNumber(),
-        addressID,
-        address: address(addressID),
-        createdAt: faker.date.past(),
-        createdBy: faker.random.number(),
-      });
-      res.status(200).send(data);
-    } else {
-      res.status(400).send({ message: 'invalid ID supplied' });
-    }
+  app.get('/v2.0/venue/:id', jwtCheck,(req, res) => {
+    Venue.findById(req.params.id, (err, venue) => {
+      if (err) {
+        return res.status(500).send({message: err.message});
+      }
+      if (!venue) {
+        return res.status(400).send({message: 'Venue not found.'});
+      }
+      res.send(venue);
+    });
   });
 
   /**
@@ -758,29 +763,24 @@ const appRouter = function (app, db) {
  * @apiSuccess {String} createdAt Timestamp of User creation.
  * @apiSuccess {Object[]} logs Log Entry Details.
  */
+app.get('/v2.0/logs', (req, res) => {
+    // console.log(req.get('User-Agent'));
+    // const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    // console.log(ip);
 
-  app.get('/v2.0/logs/', (req, res) => {
-    const logs = [];
-    const num = req.params.num;
-    const count = 20;
-    for (let i = 0; i <= count; i += 1) {
-      logs.push({
-        id: num,
-        logID: num,
-        createdAt: faker.date.past(),
-        createdBy: faker.random.number(),
-        idAddress: faker.internet.ip(),
-        referrer: faker.internet.url(),
-        userAgent: faker.internet.userAgent(),
-        action: faker.hacker.ingverb(),
-
-      });
-    }
-    const data = ({
-      createdAt: faker.date.past(),
-      logs,
+    Log.find({viewPublic: true, datetime: { $lte: new Date() }},
+      _logListProjection, (err, logs) => {
+      let logsArr = [];
+      if (err) {
+        return res.status(500).send({message: err.message});
+      }
+      if (logs) {
+        logs.forEach(log => {
+          logsArr.push(log);
+        });
+      }
+      res.send(logsArr);
     });
-    res.status(200).send(data);
   });
 
   /**
