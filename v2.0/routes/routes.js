@@ -1014,6 +1014,81 @@ const appRouter = function (app, db) {
     });
   });
 
+
+/**
+ * @api {post} /v2.0/rsvp/new Create New RSVP
+ * @apiVersion 2.0.1
+ * @apiName PostRsvpNew
+ * @apiGroup RSVPs
+ *
+ * @apiSuccess {Object} Rsvp
+ *
+ * @apiFailure {String} message 'Failed'
+ */
+  app.post('/v2.0/rsvp/new', jwtCheck, (req, res) => {
+    Rsvp.findOne({eventId: req.body.eventId, userId: req.body.userId}, (err, existingRsvp) => {
+      if (err) {
+        return res.status(500).send({message: err.message});
+      }
+      if (existingRsvp) {
+        return res.status(409).send({message: 'You have already RSVPed to this event.'});
+      }
+      const rsvp = new Rsvp({
+        userId: req.body.userId,
+        name: req.body.name,
+        eventId: req.body.eventId,
+        attending: req.body.attending,
+        guests: req.body.guests,
+        comments: req.body.comments
+      });
+      rsvp.save((err) => {
+        if (err) {
+          return res.status(500).send({message: err.message});
+        }
+        res.send(rsvp);
+      });
+    });
+  });
+
+
+// PUT (edit) an existing RSVP
+/**
+ * @api {put} /v2.0/rsvp/:id Edit an existing RSVP
+ * @apiVersion 2.0.1
+ * @apiName PutRSVP
+ * @apiGroup RSVPs
+ *
+ * @apiParam {Number} id RSVP ID
+ *
+ * @apiSuccess {Object} Rsvp
+ *
+ * @apiFailure {String} message 'Failed'
+ */
+  app.put('/v2.0/rsvp/:id', jwtCheck, (req, res) => {
+    Rsvp.findById(req.params.id, (err, rsvp) => {
+      if (err) {
+        return res.status(500).send({message: err.message});
+      }
+      if (!rsvp) {
+        return res.status(400).send({message: 'RSVP not found.'});
+      }
+      if (rsvp.userId !== req.user.sub) {
+        return res.status(401).send({message: 'You cannot edit someone else\'s RSVP.'});
+      }
+      rsvp.name = req.body.name;
+      rsvp.attending = req.body.attending;
+      rsvp.guests = req.body.guests;
+      rsvp.comments = req.body.comments;
+
+      rsvp.save(err => {
+        if (err) {
+          return res.status(500).send({message: err.message});
+        }
+        res.send(rsvp);
+      });
+    });
+  });
+
   /**
  * @api {get} /v2.0/checklists/ list of public checklists starting in the future
  * @apiVersion 2.0.1
@@ -1025,7 +1100,7 @@ const appRouter = function (app, db) {
  * @apiFailure {String} message 'Failed to create new contact.'
  */
   app.get('/v2.0/checklists', (req, res) => {
-    Checklist.find({viewPublic: true, startDatetime: { $gte: new Date() }},
+    Checklist.find({viewPublic: true, startDatetime: { $lte: new Date() }},
       _checklistListProjection, (err, checklists) => {
       let checklistArr = [];
       if (err) {

@@ -4,7 +4,7 @@
   "description": "REST API for RezTechPro",
   "main": "app.js",
   "engines": {
-    "node": "9.11.1",
+    "node": "10.5.x",
     "npm": "6.1.x"
   },
   "scripts": {
