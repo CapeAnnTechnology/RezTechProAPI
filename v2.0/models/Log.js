@@ -13,6 +13,7 @@ const logSchema = new Schema({
   data: String,
   ipAddress: String,
   userAgent: String,
+  referrer: String,
   datetime: { type: Date, required: true },
   viewPublic: { type: Boolean, required: true }
 });

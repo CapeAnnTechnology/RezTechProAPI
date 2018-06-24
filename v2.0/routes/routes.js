@@ -171,7 +171,7 @@ const appRouter = function (app, db) {
  const _checklistListProjection = 'title startDatetime endDatetime viewPublic';
  const _businessListProjection = 'title location phoneNumber viewPublic';
  const _venueListProjection = 'title location phoneNumber viewPublic';
- const _logListProjection = 'action ipAddress userAgent datetime viewPublic';
+ const _logListProjection = 'action ipAddress userAgent referrer datetime viewPublic';
 
   /**
  * @api {get} /v2.0/ Welcome Message
