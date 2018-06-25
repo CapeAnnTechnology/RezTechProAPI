@@ -763,7 +763,7 @@ const appRouter = function (app, db) {
  * @apiSuccess {String} createdAt Timestamp of User creation.
  * @apiSuccess {Object[]} logs Log Entry Details.
  */
-app.get('/v2.0/logs', (req, res) => {
+app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
     // console.log(req.get('User-Agent'));
     // const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     // console.log(ip);
@@ -843,24 +843,16 @@ app.get('/v2.0/logs', (req, res) => {
  * @apiSuccess {String} userAgent User Browser Agent Details.
  * @apiSuccess {String} action Action performed by User.
  */
-  app.get('/v2.0/log/:num', (req, res) => {
-    const num = req.params.num;
-    if (Number.isFinite(num) && num > 0) {
-      faker.seed(parseInt(num, 10));
-      const data = ({
-        id: num,
-        logID: num,
-        createdAt: faker.date.past(),
-        createdBy: faker.random.number(),
-        ipAddress: faker.internet.ip(),
-        referrer: faker.internet.url(),
-        userAgent: faker.internet.userAgent(),
-        action: faker.hacker.ingverb(),
-      });
-      res.status(200).send(data);
-    } else {
-      res.status(400).send({ message: 'invalid ID supplied' });
-    }
+  app.get('/v2.0/log/:id', jwtCheck, adminCheck, (req, res) => {
+    Log.findById(req.params.id, (err, log) => {
+      if (err) {
+        return res.status(500).send({message: err.message});
+      }
+      if (!log) {
+        return res.status(400).send({message: 'Log Entry not found.'});
+      }
+      res.send(log);
+    });
   });
 
 
