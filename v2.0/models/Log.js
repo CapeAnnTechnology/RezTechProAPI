@@ -8,17 +8,17 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const logSchema = new Schema({
-  userId: { type: String, required: true },
-  action: { type: String, required: true },
+  userId: String,
+  action: String,
   data: String,
   ipAddress: String,
   userAgent: String,
   referrer: String,
   timestamp: { type: Date, required: true },
-  viewPublic: { type: Boolean, required: true },
+  viewPublic: Boolean,
   additional: [],
   fileName: String,
-  level: String,
+  level: { type: Number, required: true },
   lineNumber: String,
   message: String
 });

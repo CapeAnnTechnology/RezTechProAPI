@@ -171,9 +171,9 @@ const appRouter = function (app, db) {
  const _checklistListProjection = 'title startDatetime endDatetime viewPublic';
  const _businessListProjection = 'title location phoneNumber viewPublic';
  const _venueListProjection = 'title location phoneNumber viewPublic';
- const _logListProjection = 'action ipAddress userAgent referrer datetime viewPublic';
+ const _logListProjection = 'action additional fileName ipAddress level lineNumber message referrer timestamp userAgent viewPublic';
 
-  /**
+/**
  * @api {get} /v2.0/ Welcome Message
  * @apiVersion 2.0.1
  * @apiName Welcome
@@ -768,7 +768,7 @@ app.get('/v2.0/logs', (req, res) => {
     // const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     // console.log(ip);
 
-    Log.find({viewPublic: true, datetime: { $lte: new Date() }},
+    Log.find({},
       _logListProjection, (err, logs) => {
       let logsArr = [];
       if (err) {
@@ -795,19 +795,20 @@ app.get('/v2.0/logs', (req, res) => {
   app.post('/v2.0/log/new', (req, res) => { // jwtCheck, adminCheck,
     Log.findOne({
       message: req.body.message,
+      level: req.body.level,
       timestamp: req.body.timestamp}, (err, existingEvent) => {
       if (err) {
         return res.status(500).send({message: err.message});
       }
       if (existingEvent) {
-        return res.status(409).send({message: 'You have already created an log with this action, data, and date/time.'});
+        return res.status(409).send({message: 'You have already created an log with this message, level and date/time.'});
       }
       const log = new Log({
         action: req.body.action,
         data: req.body.data,
-        ipAddress: req.body.ipAddress,
-        userAgent: req.body.userAgent,
-        referrer: req.body.referrer,
+        ipAddress: req.headers['x-forwarded-for'] || req.connection.remoteAddress,
+        userAgent: req.get('User-Agent'),
+        referrer: req.headers.referer,
         additional: req.body.additional,
         fileName: req.body.fileName,
         level: req.body.level,
