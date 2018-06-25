@@ -783,6 +783,48 @@ app.get('/v2.0/logs', (req, res) => {
     });
   });
 
+/**
+ * @api {get} /v2.0/log/new Create Log Entries
+ * @apiVersion 2.0.1
+ * @apiName PostLog
+ * @apiGroup Logs
+ *
+ * @apiSuccess {String} createdAt Timestamp of User creation.
+ * @apiSuccess {Object[]} logs Log Entry Details.
+ */
+  app.post('/v2.0/log/new', (req, res) => { // jwtCheck, adminCheck,
+    Log.findOne({
+      message: req.body.message,
+      timestamp: req.body.timestamp}, (err, existingEvent) => {
+      if (err) {
+        return res.status(500).send({message: err.message});
+      }
+      if (existingEvent) {
+        return res.status(409).send({message: 'You have already created an log with this action, data, and date/time.'});
+      }
+      const log = new Log({
+        action: req.body.action,
+        data: req.body.data,
+        ipAddress: req.body.ipAddress,
+        userAgent: req.body.userAgent,
+        referrer: req.body.referrer,
+        additional: req.body.additional,
+        fileName: req.body.fileName,
+        level: req.body.level,
+        lineNumber: req.body.level,
+        message: req.body.message,
+        timestamp: req.body.timestamp,
+        viewPublic: req.body.viewPublic
+      });
+      log.save((err) => {
+        if (err) {
+          return res.status(500).send({message: err.message});
+        }
+        res.send(log);
+      });
+    });
+  });
+
   /**
  * @api {get} /v2.0/log/:id Request Log Entry By ID
  * @apiVersion 2.0.1

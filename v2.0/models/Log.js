@@ -14,8 +14,13 @@ const logSchema = new Schema({
   ipAddress: String,
   userAgent: String,
   referrer: String,
-  datetime: { type: Date, required: true },
-  viewPublic: { type: Boolean, required: true }
+  timestamp: { type: Date, required: true },
+  viewPublic: { type: Boolean, required: true },
+  additional: [],
+  fileName: String,
+  level: String,
+  lineNumber: String,
+  message: String
 });
 
 module.exports = mongoose.model('Log', logSchema);
@@ -30,3 +35,10 @@ module.exports = mongoose.model('Log', logSchema);
 //     "datetime" : ISODate("2018-06-19T16:01:00.000Z"),
 //     "viewPublic" : false
 // }
+
+// additional: []
+// fileName: "main.js"
+// level: 5
+// lineNumber: "3112"
+// message: "Server Side Log Message"
+// timestamp: "2018-06-25T02:44:02.194Z"
