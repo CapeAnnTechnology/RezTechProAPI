@@ -169,7 +169,7 @@ const appRouter = function (app, db) {
 
  const _eventListProjection = 'title startDatetime endDatetime viewPublic';
  const _checklistListProjection = 'title startDatetime endDatetime viewPublic';
- const _businessListProjection = 'title location phoneNumber viewPublic';
+ const _businessListProjection = 'title location phoneNumber faxNumber viewPublic comments';
  const _venueListProjection = 'title location phoneNumber viewPublic';
  const _logListProjection = 'action additional fileName ipAddress level lineNumber message referrer timestamp userAgent viewPublic';
 
