@@ -379,7 +379,7 @@ const appRouter = function (app, db) {
  *
  * @apiFailure {String} message 'Failed'
  */
-  app.get('/v2.0/business/:businessId/venues', jwtCheck, (req, res) => {
+  app.get('/v2.0/business/:businessId/venues', jwtCheck, adminCheck, (req, res) => {
     Venue.find({businessId: req.params.businessId}, (err, venues) => {
       let venuesArr = [];
       if (err) {
