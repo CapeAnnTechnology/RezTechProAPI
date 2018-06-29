@@ -445,6 +445,33 @@ const appRouter = function (app, db) {
     });
   });
 
+
+/**
+ * @api {get} /v2.0/business/:businessId/venues Venues by business ID
+ * @apiVersion 2.0.1
+ * @apiName PostContacts
+ * @apiGroup Contacts
+ *
+ * @apiParam {Number} id Business ID
+ *
+ * @apiSuccess {Object} Venues
+ *
+ * @apiFailure {String} message 'Failed'
+ */
+  app.get('/v2.0/venue/:venueId/checklists', jwtCheck, adminCheck, (req, res) => {
+    Checklist.find({venueId: req.params.venueId}, (err, checklists) => {
+      let checklistsArr = [];
+      if (err) {
+        return res.status(500).send({message: err.message});
+      }
+      if (checklists) {
+        checklists.forEach(checklist => {
+          checklistsArr.push(checklist);
+        });
+      }
+      res.send(checklistsArr);
+    });
+  });
   /**
  * @api {get} /v2.0/address/ Request Address [Random]
  * @apiVersion 2.0.1
