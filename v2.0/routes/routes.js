@@ -1657,43 +1657,35 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
  *
  * @apiSuccess {File} PDF
  */
-  app.get('/v2.0/checklist/:num/pdf/', (req, res) => {
-    const num = req.params.num;
-    faker.seed(parseInt(num, 10));
-    const venueID = faker.random.number();
-    const userID = faker.random.number();
-    const date = faker.date.recent();
-    const questionCount = 15;
-    const questions = [];
+  app.get('/v2.0/checklist/:id/pdf/', (req, res) => {
+    Checklist.findById(req.params.id, (err, checklist) => {
+      if (err) {
+        return res.status(500).send({message: err.message});
+      }
+      if (!checklist) {
+        return res.status(400).send({message: 'Checklist not found.'});
+      }
 
-    for (let i = 1; i <= questionCount; i += 1) {
-      const question = ({
-        id: i,
-        questionID: i,
-        answer: (faker.random.number() % 10 > 2) ? 1 : 0,
-        date: faker.date.past(),
-        capacity: faker.random.number() % 200,
-        name: `${faker.name.prefix()} ${
-          faker.name.firstName()} ${
-          faker.name.lastName()} ${
-          faker.name.suffix()}`,
-      });
-      questions.push(question);
-    }
+    // console.log(checklist);
+    // const num = req.params.id;
+    // faker.seed(parseInt(num, 10));
+    // const venueID = checklist.venueId;
+    // const userID = checklist.userId;
+    // const date = checklist.timestamp;
 
-    const data = ({
-      id: num,
-      checklistID: num,
-      venueID,
-      venue: venue(venueID),
-      userID,
-      user: user(userID),
-      questions,
-      ipAddress: faker.internet.ip(),
-      userAgent: faker.internet.userAgent(),
-      createdAt: date,
-      createdBy: userID,
-    });
+    // const data = ({
+    //   id: num,
+    //   checklistID: num,
+    //   venueID,
+    //   venue: venue(venueID),
+    //   userID,
+    //   user: user(userID),
+    //   questions,
+    //   ipAddress: faker.internet.ip(),
+    //   userAgent: faker.internet.userAgent(),
+    //   createdAt: date,
+    //   createdBy: userID,
+    // });
 
     const hummus = require('hummus');
 
@@ -1732,233 +1724,233 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
       .startContext()
       .getContext()
       .writeText(
-        `${data.createdAt.getUTCMonth() + 1}/${
-          data.createdAt.getUTCDate()}/${
-          data.createdAt.getUTCFullYear()}`,
+        `${checklist.timestamp.getUTCMonth() + 1}/${
+          checklist.timestamp.getUTCDate()}/${
+          checklist.timestamp.getUTCFullYear()}`,
         268, 668,
         answerFont,
       )
+      // .writeText(
+      //   `${data.user.prefix} ${data.user.firstName} ${data.user.lastName} ${data.user.suffix}`,
+      //   185, 44,
+      //   answerFont,
+      // )
+      // .writeText(
+      //   data.user.certificate.number,
+      //   500, 44,
+      //   smallFont,
+      // )
+      // .writeText(
+      //   `Expires: ${data.user.certificate.expiresAt.getUTCMonth() + 1}/${
+      //     data.user.certificate.expiresAt.getUTCDate()}/${
+      //     data.user.certificate.expiresAt.getUTCFullYear()}`,
+      //   500, 33,
+      //   verySmallFont,
+      // )
       .writeText(
-        `${data.user.prefix} ${data.user.firstName} ${data.user.lastName} ${data.user.suffix}`,
-        185, 44,
-        answerFont,
-      )
-      .writeText(
-        data.user.certificate.number,
-        500, 44,
-        smallFont,
-      )
-      .writeText(
-        `Expires: ${data.user.certificate.expiresAt.getUTCMonth() + 1}/${
-          data.user.certificate.expiresAt.getUTCDate()}/${
-          data.user.certificate.expiresAt.getUTCFullYear()}`,
-        500, 33,
-        verySmallFont,
-      )
-      .writeText(
-        (data.questions[q].answer) ? 'X' : '',
+        (checklist.question_1 == 'true') ? 'X' : '',
         x1, 600,
         answerFont,
       )
       .writeText(
-        (!data.questions[q].answer) ? 'X' : '',
+        (checklist.question_1 == 'false') ? 'X' : '',
         x2, 600,
         answerFont,
       )
       .writeText(
-        (data.questions[++q].answer) ? 'X' : '',
+        (checklist.question_2 == 'true') ? 'X' : '',
         x1, 555,
         answerFont,
       )
       .writeText(
-        (!data.questions[q].answer) ? 'X' : '',
+        (checklist.question_2 == 'false') ? 'X' : '',
         x2, 555,
         answerFont,
       )
       .writeText(
-        (data.questions[++q].answer) ? 'X' : '',
+        (checklist.question_3 == 'true') ? 'X' : '',
         x1, 530,
         answerFont,
       )
       .writeText(
-        (!data.questions[q].answer) ? 'X' : '',
+        (checklist.question_3 == 'false') ? 'X' : '',
         x2, 530,
         answerFont,
       )
       .writeText(
-        (data.questions[++q].answer) ? 'X' : '',
+        (checklist.question_4 == 'true') ? 'X' : '',
         x1, 505,
         answerFont,
       )
       .writeText(
-        (!data.questions[q].answer) ? 'X' : '',
+        (checklist.question_4 == 'false') ? 'X' : '',
         x2, 505,
         answerFont,
       )
       .writeText(
-        (data.questions[++q].answer) ? 'X' : '',
+        (checklist.question_5 == 'true') ? 'X' : '',
         x1, 480,
         answerFont,
       )
       .writeText(
-        (!data.questions[q].answer) ? 'X' : '',
+        (checklist.question_5 == 'false') ? 'X' : '',
         x2, 480,
         answerFont,
       )
       .writeText(
-        (data.questions[++q].answer) ? 'X' : '',
+        (checklist.question_6 == 'true') ? 'X' : '',
         x1, 455,
         answerFont,
       )
       .writeText(
-        (!data.questions[q].answer) ? 'X' : '',
+        (checklist.question_6 == 'false') ? 'X' : '',
         x2, 455,
         answerFont,
       )
       .writeText(
-        (data.questions[++q].answer) ? 'X' : '',
+        (checklist.question_7 == 'true') ? 'X' : '',
         x1, 430,
         answerFont,
       )
       .writeText(
-        (!data.questions[q].answer) ? 'X' : '',
+        (checklist.question_7 == 'false') ? 'X' : '',
         x2, 430,
         answerFont,
       )
       .writeText(
-        `${data.questions[q].date.getUTCMonth() + 1}/${
-          data.questions[q].date.getUTCDate()}/${
-          data.questions[q].date.getUTCFullYear()}`,
+        `${checklist.question_7_date.getUTCMonth() + 1}/${
+          checklist.question_7_date.getUTCDate()}/${
+          checklist.question_7_date.getUTCFullYear()}`,
         360, 435,
         smallFont,
       )
       .writeText(
-        (data.questions[++q].answer) ? 'X' : '',
+        (checklist.question_8 == 'true') ? 'X' : '',
         x1, 410,
         answerFont,
       )
       .writeText(
-        (!data.questions[q].answer) ? 'X' : '',
+        (checklist.question_8 == 'false') ? 'X' : '',
         x2, 410,
         answerFont,
       )
       .writeText(
-        (data.questions[++q].answer) ? 'X' : '',
+        (checklist.question_9 == 'true') ? 'X' : '',
         x1, 380,
         answerFont,
       )
       .writeText(
-        (!data.questions[q].answer) ? 'X' : '',
+        (checklist.question_9 == 'false') ? 'X' : '',
         x2, 380,
         answerFont,
       )
       .writeText(
-        data.questions[q].name,
+        checklist.question_9_person,
         60, 370,
         smallFont,
       )
       .writeText(
-        (data.questions[++q].answer) ? 'X' : '',
+        (checklist.question_10 == 'true') ? 'X' : '',
         x1, 340,
         answerFont,
       )
       .writeText(
-        (!data.questions[q].answer) ? 'X' : '',
+        (checklist.question_10 == 'false') ? 'X' : '',
         x2, 340,
         answerFont,
       )
       .writeText(
-        data.questions[q].name,
+        checklist.question_10_person,
         320, 335,
         smallFont,
       )
       .writeText(
-        (data.questions[++q].answer) ? 'X' : '',
+        (checklist.question_11 == 'true') ? 'X' : '',
         x1, 300,
         answerFont,
       )
       .writeText(
-        (!data.questions[q].answer) ? 'X' : '',
+        (checklist.question_11 == 'false') ? 'X' : '',
         x2, 300,
         answerFont,
       )
       .writeText(
-        data.questions[q].capacity,
+        checklist.question_11_capacity,
         150, 297,
         smallFont,
       )
       .writeText(
-        `${data.questions[q].date.getUTCMonth() + 1}/${
-          data.questions[q].date.getUTCDate()}/${
-          data.questions[q].date.getUTCFullYear()}`,
+        `${checklist.question_11_date.getUTCMonth() + 1}/${
+          checklist.question_11_date.getUTCDate()}/${
+          checklist.question_11_date.getUTCFullYear()}`,
         135, 285,
         smallFont,
       )
       .writeText(
-        (data.questions[++q].answer) ? 'X' : '',
+        (checklist.question_12 == 'true') ? 'X' : '',
         x1, 250,
         answerFont,
       )
       .writeText(
-        (!data.questions[q].answer) ? 'X' : '',
+        (checklist.question_12 == 'false') ? 'X' : '',
         x2, 250,
         answerFont,
       )
       .writeText(
-        `${data.questions[q].date.getUTCMonth() + 1}/${
-          data.questions[q].date.getUTCDate()}/${
-          data.questions[q].date.getUTCFullYear()}`,
+        `${checklist.question_12_date.getUTCMonth() + 1}/${
+          checklist.question_12_date.getUTCDate()}/${
+          checklist.question_12_date.getUTCFullYear()}`,
         300, 250,
         smallFont,
       )
       .writeText(
-        (data.questions[++q].answer) ? 'X' : '',
+        (checklist.question_13 == 'true') ? 'X' : '',
         x1, 220,
         answerFont,
       )
       .writeText(
-        (!data.questions[q].answer) ? 'X' : '',
+        (checklist.question_13 == 'false') ? 'X' : '',
         x2, 220,
         answerFont,
       )
       .writeText(
-        `${data.questions[q].date.getUTCMonth() + 1}/${
-          data.questions[q].date.getUTCDate()}/${
-          data.questions[q].date.getUTCFullYear()}`,
+        `${checklist.question_13_date.getUTCMonth() + 1}/${
+          checklist.question_13_date.getUTCDate()}/${
+          checklist.question_13_date.getUTCFullYear()}`,
         300, 215,
         smallFont,
       )
       .writeText(
-        (data.questions[++q].answer) ? 'X' : '',
+        (checklist.question_14 == 'true') ? 'X' : '',
         x1, 145,
         answerFont,
       )
       .writeText(
-        (!data.questions[q].answer) ? 'X' : '',
+        (checklist.question_14 == 'false') ? 'X' : '',
         x2, 145,
         answerFont,
       )
       .writeText(
-        `${data.questions[q].date.getUTCMonth() + 1}/${
-          data.questions[q].date.getUTCDate()}/${
-          data.questions[q].date.getUTCFullYear()}`,
+        `${checklist.question_14_date.getUTCMonth() + 1}/${
+          checklist.question_14_date.getUTCDate()}/${
+          checklist.question_14_date.getUTCFullYear()}`,
         280, 140,
         smallFont,
       )
       .writeText(
-        (data.questions[++q].answer) ? 'X' : '',
+        (checklist.question_15 == 'true') ? 'X' : '',
         x1, 105,
         answerFont,
       )
       .writeText(
-        (!data.questions[q].answer) ? 'X' : '',
+        (checklist.question_15 == 'false') ? 'X' : '',
         x2, 105,
         answerFont,
       )
       .writeText(
-        `${data.questions[q].date.getUTCMonth() + 1}/${
-          data.questions[q].date.getUTCDate()}/${
-          data.questions[q].date.getUTCFullYear()}`,
+        `${checklist.question_15_date.getUTCMonth() + 1}/${
+          checklist.question_15_date.getUTCDate()}/${
+          checklist.question_15_date.getUTCFullYear()}`,
         170, 103,
         smallFont,
       )
@@ -1968,25 +1960,20 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
         verySmallFont,
       )
       .writeText(
-        `Document ID#: ${data.ID}`,
+        `Document ID#: ${checklist._id}`,
         230, 15,
         verySmallFont,
       )
       .writeText(
-        data.createdAt,
+        checklist.timestamp,
         310, 15,
         verySmallFont,
       )
       .writeText(
-        data.ipAddress,
+        checklist.ipAddress,
         460, 15,
         verySmallFont,
       ); // end writeText
-
-    console.log((data.questions[0].answer) ? 'X' : '0');
-    console.log((!data.questions[0].answer) ? 'X' : '0');
-    console.log((data.questions[1].answer) ? 'X' : '0');
-    console.log((!data.questions[1].answer) ? 'X' : '0');
 
     pageModifier
       .endContext()
@@ -1999,7 +1986,9 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
 
 
     res.end();
-  });
+
+    }); // end findById
+  }); // end checklist/:id/pdf
 
 
 
