@@ -458,7 +458,7 @@ const appRouter = function (app, db) {
  *
  * @apiFailure {String} message 'Failed'
  */
-  app.get('/v2.0/venue/:venueId/checklists', jwtCheck, adminCheck, (req, res) => {
+  app.get('/v2.0/venue/:venueId/checklists',  (req, res) => { // jwtCheck, adminCheck,
     Checklist.find({venueId: req.params.venueId}, (err, checklists) => {
       let checklistsArr = [];
       if (err) {
@@ -1100,7 +1100,7 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
  *
  * @apiFailure {String} message 'Failed'
  */
-  app.post('/api/event/new', jwtCheck, adminCheck, (req, res) => {
+  app.post('/v2.0/event/new', jwtCheck, adminCheck, (req, res) => {
     Event.findOne({
       title: req.body.title,
       location: req.body.location,
@@ -1141,7 +1141,7 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
  *
  * @apiFailure {String} message 'Failed'
  */
-  app.put('/api/event/:id', jwtCheck, adminCheck, (req, res) => {
+  app.put('/v2.0/event/:id', jwtCheck, adminCheck, (req, res) => {
     Event.findById(req.params.id, (err, event) => {
       if (err) {
         return res.status(500).send({message: err.message});
@@ -1177,7 +1177,7 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
  *
  * @apiFailure {String} message 'Failed'
  */
-  app.delete('/api/event/:id', jwtCheck, adminCheck, (req, res) => {
+  app.delete('/v2.0/event/:id', jwtCheck, adminCheck, (req, res) => {
     Event.findById(req.params.id, (err, event) => {
       if (err) {
         return res.status(500).send({message: err.message});
@@ -1607,6 +1607,44 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
       createdBy: userID,
     });
     res.status(200).send(data);
+  });
+
+/**
+ * @api {post} /v2.0/checklist/new Post new checklist
+ * @apiVersion 2.0.1
+ * @apiName PostChecklistNew
+ * @apiGroup Checklists
+ *
+ * @apiSuccess {Object} Checklist
+ *
+ * @apiFailure {String} message 'Failed'
+ */
+  app.post('/v2.0/checklist/new', jwtCheck, adminCheck, (req, res) => {
+    Checklist.findOne({
+      title: req.body.title,
+      location: req.body.location,
+      startDatetime: req.body.startDatetime}, (err, existingChecklist) => {
+      if (err) {
+        return res.status(500).send({message: err.message});
+      }
+      if (existingChecklist) {
+        return res.status(409).send({message: 'You have already created an checklist with this title, location, and start date/time.'});
+      }
+      const checklist = new Checklist({
+        title: req.body.title,
+        location: req.body.location,
+        startDatetime: req.body.startDatetime,
+        endDatetime: req.body.endDatetime,
+        description: req.body.description,
+        viewPublic: req.body.viewPublic
+      });
+      checklist.save((err) => {
+        if (err) {
+          return res.status(500).send({message: err.message});
+        }
+        res.send(checklist);
+      });
+    });
   });
 
   /**

@@ -8,6 +8,8 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const checklistSchema = new Schema({
+  venueId: { type: String, required: true },
+  userId: { type: String, required: true },
   title: { type: String, required: true },
   location: { type: String, required: true },
   startDatetime: { type: Date, required: true },
