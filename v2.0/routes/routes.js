@@ -24,6 +24,8 @@ const Checklist = require('../models/Checklist');
 const Business = require('../models/Business');
 const Venue = require('../models/Venue');
 const Log = require('../models/Log');
+const User = require('../models/User');
+const Certificate = require('../models/Certificate');
 
 const appRouter = function (app, db) {
 /** ***
@@ -1666,7 +1668,8 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
         return res.status(400).send({message: 'Checklist not found.'});
       }
 
-    // console.log(checklist);
+    console.log(checklist);
+    console.log(checklist.userId.user_metadata);
     // const num = req.params.id;
     // faker.seed(parseInt(num, 10));
     // const venueID = checklist.venueId;
@@ -1730,23 +1733,23 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
         268, 668,
         answerFont,
       )
-      // .writeText(
-      //   `${data.user.prefix} ${data.user.firstName} ${data.user.lastName} ${data.user.suffix}`,
-      //   185, 44,
-      //   answerFont,
-      // )
-      // .writeText(
-      //   data.user.certificate.number,
-      //   500, 44,
-      //   smallFont,
-      // )
-      // .writeText(
-      //   `Expires: ${data.user.certificate.expiresAt.getUTCMonth() + 1}/${
-      //     data.user.certificate.expiresAt.getUTCDate()}/${
-      //     data.user.certificate.expiresAt.getUTCFullYear()}`,
-      //   500, 33,
-      //   verySmallFont,
-      // )
+      .writeText(
+        `${checklist.userId.user_metadata.prefix} ${checklist.userId.user_metadata.given_name} ${checklist.userId.user_metadata.family_name} ${checklist.userId.user_metadata.suffix}`,
+        185, 44,
+        answerFont,
+      )
+      .writeText(
+        checklist.userId.certificates[0].number,
+        500, 44,
+        smallFont,
+      )
+      .writeText(
+        `Expires: ${checklist.userId.certificates[0].endDatetime.getUTCMonth() + 1}/${
+          checklist.userId.certificates[0].endDatetime.getUTCDate()}/${
+          checklist.userId.certificates[0].endDatetime.getUTCFullYear()}`,
+        500, 33,
+        verySmallFont,
+      )
       .writeText(
         (checklist.question_1 == 'true') ? 'X' : '',
         x1, 600,
@@ -1987,7 +1990,12 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
 
     res.end();
 
-    }); // end findById
+    })
+    .populate({
+      path: 'userId',
+      populate: { path: 'certificates' }
+    })
+    .populate('venueId'); // end findById
   }); // end checklist/:id/pdf
 
 

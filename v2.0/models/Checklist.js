@@ -8,15 +8,9 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const checklistSchema = new Schema({
-	venueId: { type: String, required: true },
-	userId: { type: String, required: true },
-	title: { type: String, required: true },
-	location: { type: String, required: true },
-	startDatetime: { type: Date, required: true },
-	endDatetime: { type: Date, required: true },
+	venueId: { type: Schema.Types.ObjectId, ref: 'Venue', required: true },
+	userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
 	timestamp: { type: Date, required: true },
-	description: String,
-	viewPublic: { type: Boolean, required: true },
 	version: { type: String, required: true },
 	question_1: String,
 	question_2: String,
