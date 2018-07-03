@@ -1958,23 +1958,23 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
         smallFont,
       )
       .writeText(
-        'Document Prepared By: RezTechPro.com',
-        110, 15,
+        'Prepared By: RezTechPro.com',
+        85, 16,
         verySmallFont,
       )
       .writeText(
-        `Document ID#: ${checklist._id}`,
-        230, 15,
+        `ID#: ${checklist._id}`,
+        175, 16,
         verySmallFont,
       )
       .writeText(
         checklist.timestamp,
-        310, 15,
+        280, 16,
         verySmallFont,
       )
       .writeText(
-        checklist.ipAddress,
-        460, 15,
+        `IP Addr: ${checklist.ipAddress}`,
+        470, 16,
         verySmallFont,
       ); // end writeText
 

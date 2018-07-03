@@ -12,6 +12,7 @@ const checklistSchema = new Schema({
 	userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
 	timestamp: { type: Date, required: true },
 	version: { type: String, required: true },
+	ipAddress: { type: String, required: true },
 	question_1: String,
 	question_2: String,
 	question_3: String,
