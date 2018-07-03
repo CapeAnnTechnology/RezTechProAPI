@@ -1417,7 +1417,12 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
         return res.status(400).send({message: 'Checklist not found.'});
       }
       res.send(checklist);
-    });
+    })
+    .populate({
+      path: 'userId',
+      populate: { path: 'certificates' }
+    })
+    .populate('venueId');
   });
 
 
