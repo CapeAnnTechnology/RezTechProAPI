@@ -1638,12 +1638,37 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
         return res.status(409).send({message: 'You have already created an checklist with this title, location, and start date/time.'});
       }
       const checklist = new Checklist({
-        title: req.body.title,
-        location: req.body.location,
-        startDatetime: req.body.startDatetime,
-        endDatetime: req.body.endDatetime,
-        description: req.body.description,
-        viewPublic: req.body.viewPublic
+        venueId: req.body.venueId,
+        userId: req.body.userId,
+        timestamp: req.body.timestamp,
+        version: req.body.version,
+        ipAddress: req.headers['x-forwarded-for'] || req.connection.remoteAddress,
+        userAgent: req.get('User-Agent'),
+        question_1: String,
+        question_2: String,
+        question_3: String,
+        question_4: String,
+        question_5: String,
+        question_6: String,
+        question_7: String,
+        question_7_date: { type: Date, required: true },
+        question_8: String,
+        question_9: String,
+        question_9_person: String,
+        question_10: String,
+        question_10_person: String,
+        question_11: String,
+        question_11_capacity: Number,
+        question_11_date: { type: Date, required: true },
+        question_12: String,
+        question_12_date: { type: Date, required: true },
+        question_13: String,
+        question_13_date: { type: Date, required: true },
+        question_14: String,
+        question_14_date: { type: Date, required: true },
+        question_15: String,
+        question_15_date: { type: Date, required: true }
+
       });
       checklist.save((err) => {
         if (err) {
