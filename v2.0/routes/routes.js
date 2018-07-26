@@ -26,6 +26,7 @@ const Venue = require('../models/Venue');
 const Log = require('../models/Log');
 const User = require('../models/User');
 const Certificate = require('../models/Certificate');
+const Inspection = require('../models/Inspection');
 
 const appRouter = function (app, db) {
 /** ***
@@ -460,7 +461,7 @@ const appRouter = function (app, db) {
  *
  * @apiFailure {String} message 'Failed'
  */
-  app.get('/v2.0/venue/:venueId/checklists',  (req, res) => { // jwtCheck, adminCheck,
+  app.get('/v2.0/venue/:venueId/checklists', jwtCheck, adminCheck, (req, res) => { // jwtCheck, adminCheck,
     Checklist.find({venueId: req.params.venueId}, (err, checklists) => {
       let checklistsArr = [];
       if (err) {
@@ -474,6 +475,82 @@ const appRouter = function (app, db) {
       res.send(checklistsArr);
     });
   });
+
+/**
+ * @api {get} /v2.0/venue/:venueId/inspections Inspections by venue ID
+ * @apiVersion 2.0.1
+ * @apiName GetVenueInspections
+ * @apiGroup Venues
+ *
+ * @apiParam {Number} id Venue ID
+ *
+ * @apiSuccess {Object} Inspections
+ *
+ * @apiFailure {String} message 'Failed'
+ */
+  app.get('/v2.0/venue/:venueId/inspections', jwtCheck, adminCheck, (req, res) => {
+    Inspection.find({venueId: req.params.venueId}, (err, inspections) => {
+      let inspectionsArr = [];
+      if (err) {
+        return res.status(500).send({message: err.message});
+      }
+      if (inspections) {
+        inspections.forEach(inspection => {
+          inspectionsArr.push(inspection);
+        });
+      }
+      res.send(inspectionsArr);
+    })
+    .populate('userId')
+    .populate('venueId');
+  });
+
+/**
+ * @api {get} /v2.0/log/new Create Log Entries
+ * @apiVersion 2.0.1
+ * @apiName PostLog
+ * @apiGroup Logs
+ *
+ * @apiSuccess {String} createdAt Timestamp of User creation.
+ * @apiSuccess {Object[]} logs Log Entry Details.
+ */
+  app.post('/v2.0/inspection/:venueId/new', jwtCheck, adminCheck, (req, res) => {
+    Inspection.findOne({
+        type: req.body.type,
+        inspectionDatetime: req.body.inspectionDatetime,
+        expirationDatetime: req.body.expirationDatetime,
+        venueId: req.params.venueId
+      }, (err, existingInspection) => {
+      if (err) {
+        return res.status(500).send({message: err.message});
+      }
+      if (existingInspection) {
+        return res.status(409).send({message: 'You have already created an Inspection with this type, venue and date/time.'});
+      }
+      const inspection = new Inspection({
+        type: req.body.type,
+        inspectionDatetime: req.body.inspectionDatetime,
+        expirationDatetime: req.body.expirationDatetime,
+        userId: req.body.userId,
+        timestamp: req.body.timestamp,
+        userAgent: req.get('User-Agent'),
+        referrer: req.headers.referer,
+        ipAddress: req.headers['x-forwarded-for'] || req.connection.remoteAddress,
+        version: req.body.version,
+        venueId: req.params.venueId
+      });
+      inspection.save((err) => {
+        if (err) {
+          return res.status(500).send({message: err.message});
+        }
+        res.send(inspection);
+      });
+    });
+  });
+
+
+
+
   /**
  * @api {get} /v2.0/address/ Request Address [Random]
  * @apiVersion 2.0.1
