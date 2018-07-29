@@ -18,15 +18,16 @@ const CHECKLISTS_COLLECTION = 'checklists';
 const jwt = require('express-jwt');
 const jwks = require('jwks-rsa');
 
-const Event = require('../models/Event');
-const Rsvp = require('../models/Rsvp');
-const Checklist = require('../models/Checklist');
 const Business = require('../models/Business');
-const Venue = require('../models/Venue');
-const Log = require('../models/Log');
-const User = require('../models/User');
 const Certificate = require('../models/Certificate');
+const Checklist = require('../models/Checklist');
+const Event = require('../models/Event');
 const Inspection = require('../models/Inspection');
+const License = require('../models/License');
+const Log = require('../models/Log');
+const Rsvp = require('../models/Rsvp');
+const User = require('../models/User');
+const Venue = require('../models/Venue');
 
 const appRouter = function (app, db) {
 /** ***
@@ -502,6 +503,40 @@ const appRouter = function (app, db) {
       res.send(inspectionsArr);
     })
     .populate('userId')
+    .populate('venueId');
+  });
+
+
+  /**
+ * @api {get} /v2.0/inspection/:id Request Checklist By ID
+ * @apiVersion 2.0.2
+ * @apiName GetInspectionByID
+ * @apiGroup Inspections
+ *
+ * @apiParam {Number} id Inspection unique ID.
+ *
+ * @apiSuccess {Number} id ID of the Inspection.
+ * @apiSuccess {Number} venueID ID of the Venue.
+ * @apiSuccess {Object[]} venue Venue Details.
+ * @apiSuccess {Number} userID ID of the User.
+ * @apiSuccess {Object[]} user  User details.
+ * @apiSuccess {String} createdAt Timestamp of Request.
+ * @apiSuccess {Number} createdBy User ID of generating Checklist.
+ */
+ app.get('/v2.0/inspection/:id', jwtCheck, adminCheck, (req, res) => {
+    Inspection.findById(req.params.id, (err, inspection) => {
+      if (err) {
+        return res.status(500).send({message: err.message});
+      }
+      if (!inspection) {
+        return res.status(400).send({message: 'Inspection not found.'});
+      }
+      res.send(inspection);
+    })
+    .populate({
+      path: 'userId',
+      populate: { path: 'certificates' }
+    })
     .populate('venueId');
   });
 
