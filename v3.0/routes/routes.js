@@ -4,7 +4,7 @@ const faker = require('faker');
 
 faker.seed(42);
 
-const version = '2.0.1';
+const version = '3.0.1';
 
 const CONTACTS_COLLECTION = 'contacts';
 const CHECKLISTS_COLLECTION = 'checklists';
@@ -14,6 +14,10 @@ const CHECKLISTS_COLLECTION = 'checklists';
  | Dependencies
  |--------------------------------------
  */
+
+const Authz = require('authz-extension-api');
+const authz = new Authz();
+
 
 const jwt = require('express-jwt');
 const jwks = require('jwks-rsa');
@@ -178,21 +182,24 @@ const appRouter = function (app, db) {
  const _logListProjection = 'action additional fileName ipAddress level lineNumber message referrer timestamp userAgent viewPublic';
 
 /**
- * @api {get} /v2.0/ Welcome Message
- * @apiVersion 2.0.1
+ * @api {get} /v3.0/ Welcome Message
+ * @apiVersion 3.0.1
  * @apiName Welcome
  * @apiGroup General
  *
  * @apiSuccess {String} message Welcome Message.
  * @apiSuccess {String} version Version Number of API.
  */
-  app.get('/v2.0/', (req, res) => {
+  app.get('/', (req, res) => {
+    res.status(200).send({ message: 'Welcome to our restful API', version });
+  });
+  app.get('/v3.0/', (req, res) => {
     res.status(200).send({ message: 'Welcome to our restful API', version });
   });
 
   /**
- * @api {get} /v2.0/user/ Request A User [Random]
- * @apiVersion 2.0.1
+ * @api {get} /v3.0/user/ Request A User [Random]
+ * @apiVersion 3.0.1
  * @apiName GetUser
  * @apiGroup Users
  *
@@ -207,7 +214,7 @@ const appRouter = function (app, db) {
  * @apiSuccess {String} createdAt Timestamp of User creation.
  * @apiSuccess {Number} createdBy User ID of generating User.
  */
-  app.get('/v2.0/user', (req, res) => {
+  app.get('/v3.0/user', (req, res) => {
     const userID = faker.random.number();
     const addressID = faker.random.number();
     const data = ({
@@ -226,8 +233,8 @@ const appRouter = function (app, db) {
   });
 
   /**
- * @api {get} /v2.0/user/:id Request Users Group
- * @apiVersion 2.0.1
+ * @api {get} /v3.0/user/:id Request Users Group
+ * @apiVersion 3.0.1
  * @apiName GetUsersByID
  * @apiGroup Users
  *
@@ -244,7 +251,7 @@ const appRouter = function (app, db) {
  * @apiSuccess {String} createdAt Timestamp of User creation.
  * @apiSuccess {Number} createdBy User ID of generating User.
  */
-  app.get('/v2.0/users/:num', (req, res) => {
+  app.get('/v3.0/users/:num', (req, res) => {
     const users = [];
     const num = req.params.num;
     faker.seed(parseInt(num, 10));
@@ -273,8 +280,8 @@ const appRouter = function (app, db) {
   });
 
   /**
- * @api {get} /v2.0/user/:id Request User by ID
- * @apiVersion 2.0.1
+ * @api {get} /v3.0/user/:id Request User by ID
+ * @apiVersion 3.0.1
  * @apiName GetUserByID
  * @apiGroup Users
  *
@@ -291,7 +298,7 @@ const appRouter = function (app, db) {
  * @apiSuccess {String} createdAt Timestamp of User creation.
  * @apiSuccess {Number} createdBy User ID of generating User.
  */
-  app.get('/v2.0/user/:num', (req, res) => {
+  app.get('/v3.0/user/:num', (req, res) => {
     const num = req.params.num;
 
     if (Number.isFinite(num) && num > 0) {
@@ -322,7 +329,7 @@ const appRouter = function (app, db) {
   });
 
   /**
- * @api {get} /v2.0/business/ Request Business [Random]
+ * @api {get} /v3.0/business/ Request Business [Random]
  * @apiVersion 2.0.3
  * @apiName GetBusiness
  * @apiGroup Businesses
@@ -330,7 +337,7 @@ const appRouter = function (app, db) {
  * @apiSuccess {String} firstname Firstname of the User.
  * @apiSuccess {String} lastname  Lastname of the User.
  */
-  app.get('/v2.0/businesses', (req, res) => {
+  app.get('/v3.0/businesses', (req, res) => {
     Business.find({}, _businessListProjection, (err, businesses) => {
       let businessArr = [];
       if (err) {
@@ -346,8 +353,108 @@ const appRouter = function (app, db) {
   });
 
   /**
- * @api {get} /v2.0/business/:id Request Business
- * @apiVersion 2.0.1
+ * @api {post} /v3.0/business/new Create New Business
+ * @apiVersion 2.0.3
+ * @apiName PostBusiness
+ * @apiGroup Businesses
+ *
+ * @apiSuccess {String} firstname Firstname of the User.
+ * @apiSuccess {String} lastname  Lastname of the User.
+ */
+  app.post('/v3.0/business/new', (req, res) => {
+    // title: { type: String, required: true },
+    // location: { type: String, required: true },
+    // phoneNumber: { type: String, required: true },
+    // faxNumber: String,
+    // comments: String
+    Business.findOne({
+        title: req.body.title,
+        location: req.body.location,
+        phoneNumber: req.body.phoneNumber,
+        faxNumber: req.body.faxNumber
+      }, (err, existingBusiness) => {
+      if (err) {
+        return res.status(500).send({message: err.message});
+      }
+      if (existingBusiness) {
+        return res.status(409).send({message: 'You have already created a business with these details'});
+      }
+      const business = new Business({
+        title: req.body.title,
+        location: req.body.location,
+        phoneNumber: req.body.phoneNumber,
+        faxNumber: req.body.faxNumber,
+        comments: req.body.comments
+      });
+      business.save((err) => {
+        if (err) {
+          return res.status(500).send({message: err.message});
+        }
+        // Create Business Groups
+        console.log(business);
+
+        const data = {
+          "applications": [
+            {
+              "id": process.env.AUTH0_CLIENT_ID,
+              "permissions": [
+                `${business._id}|create-venue`,
+                `${business._id}|read-venue`,
+                `${business._id}|update-venue`,
+                `${business._id}|delete-venue`,
+                `${business._id}|read-business`,
+                `${business._id}|edit-business`
+              ],
+              "roles": [
+                {
+                  "name": "Owner",
+                  "description": "Business Owner",
+                  "permissions": [
+                    `${business._id}|create-venue`,
+                    `${business._id}|read-venue`,
+                    `${business._id}|update-venue`,
+                    `${business._id}|delete-venue`,
+                    `${business._id}|read-business`,
+                    `${business._id}|edit-business`
+                  ]
+                },
+              ]
+            },
+          ],
+          "groups": [
+            {
+              "name": `${business._id}|Owners`,
+              "description":`Owners of ${business.title}`,
+              "roles": [
+                "Owner"
+              ]
+            },
+            {
+              "name": `${business._id}`,
+              "description": business.title,
+              "nested": [
+                `${business._id}|Owners`
+              ]
+            },
+          ]
+        };
+
+        console.log(data.groups);
+
+        authz.getAccessToken()
+          .then(accessToken => authz.provisionGroups(data))
+          .catch(err => {
+            log(chalk.red.bold('Error:'), JSON.stringify({ error: err.error || err.message, options: err.options }, null, 2));
+          });
+
+        res.send(business);
+      });
+    });
+  });
+
+  /**
+ * @api {get} /v3.0/business/:id Request Business
+ * @apiVersion 3.0.1
  * @apiName GetBusinessByID
  * @apiGroup Businesses
  *
@@ -356,7 +463,7 @@ const appRouter = function (app, db) {
  * @apiSuccess {String} createdAt Timestamp of User creation.
  * @apiSuccess {Number} createdBy User ID of generating User.
  */
-  app.get('/v2.0/business/:id', jwtCheck, (req, res) => {
+  app.get('/v3.0/business/:id', jwtCheck, (req, res) => {
     Business.findById(req.params.id, (err, business) => {
       if (err) {
         return res.status(500).send({message: err.message});
@@ -369,8 +476,8 @@ const appRouter = function (app, db) {
   });
 
   /**
- * @api {get} /v2.0/business/:businessId/venues Venues by business ID
- * @apiVersion 2.0.1
+ * @api {get} /v3.0/business/:businessId/venues Venues by business ID
+ * @apiVersion 3.0.1
  * @apiName PostContacts
  * @apiGroup Contacts
  *
@@ -380,7 +487,7 @@ const appRouter = function (app, db) {
  *
  * @apiFailure {String} message 'Failed'
  */
-  app.get('/v2.0/business/:businessId/venues', jwtCheck, adminCheck, (req, res) => {
+  app.get('/v3.0/business/:businessId/venues', jwtCheck, adminCheck, (req, res) => {
     Venue.find({businessId: req.params.businessId}, (err, venues) => {
       let venuesArr = [];
       if (err) {
@@ -396,8 +503,8 @@ const appRouter = function (app, db) {
   });
 
   /**
- * @api {get} /v2.0/venues Request Venues [List]
- * @apiVersion 2.0.1
+ * @api {get} /v3.0/venues Request Venues [List]
+ * @apiVersion 3.0.1
  * @apiName GetVenue
  * @apiGroup Venues
  *
@@ -406,7 +513,7 @@ const appRouter = function (app, db) {
  * @apiSuccess {String} createdAt Timestamp of User creation.
  * @apiSuccess {Number} createdBy User ID of generating User.
  */
-  app.get('/v2.0/venues', (req, res) => {
+  app.get('/v3.0/venues', (req, res) => {
     Venue.find({}, _venueListProjection, (err, venues) => {
       let venueArr = [];
       if (err) {
@@ -422,7 +529,7 @@ const appRouter = function (app, db) {
   });
 
   /**
- * @api {get} /v2.0/venue/:id Request Venue By ID
+ * @api {get} /v3.0/venue/:id Request Venue By ID
  * @apiVersion 2.0.0
  * @apiName GetVenueByID
  * @apiGroup Venues
@@ -434,7 +541,7 @@ const appRouter = function (app, db) {
  * @apiSuccess {String} createdAt Timestamp of User creation.
  * @apiSuccess {Number} createdBy User ID of generating User.
  */
-  app.get('/v2.0/venue/:id', jwtCheck,(req, res) => {
+  app.get('/v3.0/venue/:id', jwtCheck,(req, res) => {
     Venue.findById(req.params.id, (err, venue) => {
       if (err) {
         return res.status(500).send({message: err.message});
@@ -448,8 +555,8 @@ const appRouter = function (app, db) {
 
 
 /**
- * @api {get} /v2.0/business/:businessId/venues Venues by business ID
- * @apiVersion 2.0.1
+ * @api {get} /v3.0/business/:businessId/venues Venues by business ID
+ * @apiVersion 3.0.1
  * @apiName PostContacts
  * @apiGroup Contacts
  *
@@ -459,7 +566,7 @@ const appRouter = function (app, db) {
  *
  * @apiFailure {String} message 'Failed'
  */
-  app.get('/v2.0/venue/:venueId/checklists', jwtCheck, adminCheck, (req, res) => { // jwtCheck, adminCheck,
+  app.get('/v3.0/venue/:venueId/checklists', jwtCheck, adminCheck, (req, res) => { // jwtCheck, adminCheck,
     Checklist.find({venueId: req.params.venueId}, (err, checklists) => {
       let checklistsArr = [];
       if (err) {
@@ -475,8 +582,8 @@ const appRouter = function (app, db) {
   });
 
 /**
- * @api {get} /v2.0/venue/:venueId/inspections Inspections by venue ID
- * @apiVersion 2.0.1
+ * @api {get} /v3.0/venue/:venueId/inspections Inspections by venue ID
+ * @apiVersion 3.0.1
  * @apiName GetVenueInspections
  * @apiGroup Venues
  *
@@ -486,7 +593,7 @@ const appRouter = function (app, db) {
  *
  * @apiFailure {String} message 'Failed'
  */
-  app.get('/v2.0/venue/:venueId/inspections', jwtCheck, adminCheck, (req, res) => {
+  app.get('/v3.0/venue/:venueId/inspections', jwtCheck, adminCheck, (req, res) => {
     Inspection.find({venueId: req.params.venueId}, (err, inspections) => {
       let inspectionsArr = [];
       if (err) {
@@ -505,7 +612,7 @@ const appRouter = function (app, db) {
 
 
   /**
- * @api {get} /v2.0/inspection/:id Request Checklist By ID
+ * @api {get} /v3.0/inspection/:id Request Checklist By ID
  * @apiVersion 2.0.2
  * @apiName GetInspectionByID
  * @apiGroup Inspections
@@ -520,7 +627,7 @@ const appRouter = function (app, db) {
  * @apiSuccess {String} createdAt Timestamp of Request.
  * @apiSuccess {Number} createdBy User ID of generating Checklist.
  */
- app.get('/v2.0/inspection/:id', jwtCheck, adminCheck, (req, res) => {
+ app.get('/v3.0/inspection/:id', jwtCheck, adminCheck, (req, res) => {
     Inspection.findById(req.params.id, (err, inspection) => {
       if (err) {
         return res.status(500).send({message: err.message});
@@ -538,15 +645,15 @@ const appRouter = function (app, db) {
   });
 
 /**
- * @api {get} /v2.0/log/new Create Log Entries
- * @apiVersion 2.0.1
+ * @api {get} /v3.0/log/new Create Log Entries
+ * @apiVersion 3.0.1
  * @apiName PostLog
  * @apiGroup Logs
  *
  * @apiSuccess {String} createdAt Timestamp of User creation.
  * @apiSuccess {Object[]} logs Log Entry Details.
  */
-  app.post('/v2.0/inspection/:venueId/new', jwtCheck, adminCheck, (req, res) => {
+  app.post('/v3.0/inspection/:venueId/new', jwtCheck, adminCheck, (req, res) => {
     Inspection.findOne({
         type: req.body.type,
         inspectionDatetime: req.body.inspectionDatetime,
@@ -584,8 +691,8 @@ const appRouter = function (app, db) {
 
 
   /**
- * @api {get} /v2.0/address/ Request Address [Random]
- * @apiVersion 2.0.1
+ * @api {get} /v3.0/address/ Request Address [Random]
+ * @apiVersion 3.0.1
  * @apiName GetAddress
  * @apiGroup Addresses
  *
@@ -594,15 +701,15 @@ const appRouter = function (app, db) {
  * @apiSuccess {String} createdAt Timestamp of User creation.
  * @apiSuccess {Number} createdBy User ID of generating User.
  */
-  app.get('/v2.0/address', (req, res) => {
+  app.get('/v3.0/address', (req, res) => {
     const addressID = faker.random.number();
     const data = (address(addressID));
     res.status(200).send(data);
   });
 
   /**
- * @api {get} /v2.0/address/:id Request Address by ID
- * @apiVersion 2.0.1
+ * @api {get} /v3.0/address/:id Request Address by ID
+ * @apiVersion 3.0.1
  * @apiName GetAddressByID
  * @apiGroup Addresses
  *
@@ -613,7 +720,7 @@ const appRouter = function (app, db) {
  * @apiSuccess {String} createdAt Timestamp of User creation.
  * @apiSuccess {Number} createdBy User ID of generating User.
  */
-  app.get('/v2.0/address/:num', (req, res) => {
+  app.get('/v3.0/address/:num', (req, res) => {
     const num = req.params.num;
     if (Number.isFinite(num) && num > 0) {
       faker.seed(parseInt(num, 10));
@@ -626,7 +733,7 @@ const appRouter = function (app, db) {
 
 
   /**
- * @api {get} /v2.0/owner/:id Request Business Owner
+ * @api {get} /v3.0/owner/:id Request Business Owner
  * @apiVersion 2.0.0
  * @apiName GetOwner
  * @apiGroup Owners
@@ -641,7 +748,7 @@ const appRouter = function (app, db) {
  * @apiSuccess {Number} createdBy User ID of generating User.
  */
 
-  app.get('/v2.0/owner/:num', (req, res) => {
+  app.get('/v3.0/owner/:num', (req, res) => {
     const num = req.params.num;
     if (Number.isFinite(num) && num > 0) {
       faker.seed(parseInt(num, 10));
@@ -662,8 +769,8 @@ const appRouter = function (app, db) {
 
 
   /**
- * @api {get} /v2.0/owns/:id Request Users Business
- * @apiVersion 2.0.1
+ * @api {get} /v3.0/owns/:id Request Users Business
+ * @apiVersion 3.0.1
  * @apiName GetOwns
  * @apiGroup Owners
  *
@@ -672,7 +779,7 @@ const appRouter = function (app, db) {
  * @apiSuccess {String} firstname Firstname of the User.
  * @apiSuccess {String} lastname  Lastname of the User.
  */
-  app.get('/v2.0/owns/:num', (req, res) => {
+  app.get('/v3.0/owns/:num', (req, res) => {
     const num = req.params.num;
     if (Number.isFinite(num) && num > 0) {
       faker.seed(parseInt(num, 10));
@@ -689,8 +796,8 @@ const appRouter = function (app, db) {
   });
 
   /**
- * @api {get} /v2.0/manager/:id Request Owner
- * @apiVersion 2.0.1
+ * @api {get} /v3.0/manager/:id Request Owner
+ * @apiVersion 3.0.1
  * @apiName GetManagers
  * @apiGroup Managers
  *
@@ -703,7 +810,7 @@ const appRouter = function (app, db) {
  * @apiSuccess {String} createdAt Timestamp of User creation.
  * @apiSuccess {Number} createdBy User ID of generating User.
  */
-  app.get('/v2.0/manager/:num', (req, res) => {
+  app.get('/v3.0/manager/:num', (req, res) => {
     const num = req.params.num;
     if (Number.isFinite(num) && num > 0) {
       faker.seed(parseInt(num, 10));
@@ -720,7 +827,7 @@ const appRouter = function (app, db) {
   });
 
   /**
- * @api {get} /v2.0/manages/:id Request Manager Venue
+ * @api {get} /v3.0/manages/:id Request Manager Venue
  * @apiVersion 2.0.0
  * @apiName GetManagerVenue
  * @apiGroup Managers
@@ -732,7 +839,7 @@ const appRouter = function (app, db) {
  * @apiSuccess {Number} remaining Remaining capcity of venue.
  * @apiSuccess {String} createdAt Timestamp of User creation.
  */
-  app.get('/v2.0/manages/:num', (req, res) => {
+  app.get('/v3.0/manages/:num', (req, res) => {
     const num = req.params.num;
     if (Number.isFinite(num) && num > 0) {
       faker.seed(parseInt(num, 10));
@@ -751,8 +858,8 @@ const appRouter = function (app, db) {
   });
 
   /**
- * @api {get} /v2.0/employees/:id Request Venue Employees
- * @apiVersion 2.0.1
+ * @api {get} /v3.0/employees/:id Request Venue Employees
+ * @apiVersion 3.0.1
  * @apiName GetEmployees
  * @apiGroup Employees
  *
@@ -762,7 +869,7 @@ const appRouter = function (app, db) {
  * @apiSuccess {String} lastname  Lastname of the User.
  */
 
-  app.get('/v2.0/employees/:num', (req, res) => {
+  app.get('/v3.0/employees/:num', (req, res) => {
     const num = req.params.num;
     if (Number.isFinite(num) && num > 0) {
       faker.seed(parseInt(num, 10));
@@ -792,8 +899,8 @@ const appRouter = function (app, db) {
 
 
   /**
- * @api {get} /v2.0/employed/:id Request Employment Status
- * @apiVersion 2.0.1
+ * @api {get} /v3.0/employed/:id Request Employment Status
+ * @apiVersion 3.0.1
  * @apiName GetEmployment
  * @apiGroup Employees
  *
@@ -803,7 +910,7 @@ const appRouter = function (app, db) {
  * @apiSuccess {String} lastname  Lastname of the User.
  */
 
-  app.get('/v2.0/employed/:num', (req, res) => {
+  app.get('/v3.0/employed/:num', (req, res) => {
     const num = req.params.num;
     if (Number.isFinite(num) && num > 0) {
       faker.seed(parseInt(num, 10));
@@ -822,8 +929,8 @@ const appRouter = function (app, db) {
 
 
   /**
- * @api {get} /v2.0/files/ Request File List [Random]
- * @apiVersion 2.0.1
+ * @api {get} /v3.0/files/ Request File List [Random]
+ * @apiVersion 3.0.1
  * @apiName GetFiles
  * @apiGroup Files
  *
@@ -831,7 +938,7 @@ const appRouter = function (app, db) {
  * @apiSuccess {Object[]} files File Details.
  */
 
-  app.get('/v2.0/files/', (req, res) => {
+  app.get('/v3.0/files/', (req, res) => {
     const files = [];
     const fileCount = faker.random.number() % 20;
     for (let i = 0; i <= fileCount; i += 1) {
@@ -846,8 +953,8 @@ const appRouter = function (app, db) {
   });
 
   /**
- * @api {get} /v2.0/file/ Request File Details [Random]
- * @apiVersion 2.0.1
+ * @api {get} /v3.0/file/ Request File Details [Random]
+ * @apiVersion 3.0.1
  * @apiName GetFile
  * @apiGroup Files
  *
@@ -859,14 +966,14 @@ const appRouter = function (app, db) {
  * @apiSuccess {Number} createdBy User ID of generating User.
  */
 
-  app.get('/v2.0/file/', (req, res) => {
+  app.get('/v3.0/file/', (req, res) => {
     const fileID = faker.random.number();
     const data = (file(fileID));
     res.status(200).send(data);
   });
 
   /**
- * @api {get} /v2.0/file/:id Request File Details By ID
+ * @api {get} /v3.0/file/:id Request File Details By ID
  * @apiVersion 2.0.0
  * @apiName GetFileByID
  * @apiGroup Files
@@ -881,7 +988,7 @@ const appRouter = function (app, db) {
  * @apiSuccess {Number} createdBy User ID of generating User.
  */
 
-  app.get('/v2.0/file/:num', (req, res) => {
+  app.get('/v3.0/file/:num', (req, res) => {
     const num = req.params.num;
     if (Number.isFinite(num) && num > 0) {
       faker.seed(parseInt(num, 10));
@@ -893,15 +1000,15 @@ const appRouter = function (app, db) {
   });
 
   /**
- * @api {get} /v2.0/logs/ Request Recent Log Entries
- * @apiVersion 2.0.1
+ * @api {get} /v3.0/logs/ Request Recent Log Entries
+ * @apiVersion 3.0.1
  * @apiName GetLogs
  * @apiGroup Logs
  *
  * @apiSuccess {String} createdAt Timestamp of User creation.
  * @apiSuccess {Object[]} logs Log Entry Details.
  */
-app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
+app.get('/v3.0/logs', jwtCheck, adminCheck, (req, res) => {
     // console.log(req.get('User-Agent'));
     // const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     // console.log(ip);
@@ -922,15 +1029,15 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
   });
 
 /**
- * @api {get} /v2.0/log/new Create Log Entries
- * @apiVersion 2.0.1
+ * @api {get} /v3.0/log/new Create Log Entries
+ * @apiVersion 3.0.1
  * @apiName PostLog
  * @apiGroup Logs
  *
  * @apiSuccess {String} createdAt Timestamp of User creation.
  * @apiSuccess {Object[]} logs Log Entry Details.
  */
-  app.post('/v2.0/log/new', (req, res) => { // jwtCheck, adminCheck,
+  app.post('/v3.0/log/new', (req, res) => { // jwtCheck, adminCheck,
     Log.findOne({
       message: req.body.message,
       level: req.body.level,
@@ -965,8 +1072,8 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
   });
 
   /**
- * @api {get} /v2.0/log/:id Request Log Entry By ID
- * @apiVersion 2.0.1
+ * @api {get} /v3.0/log/:id Request Log Entry By ID
+ * @apiVersion 3.0.1
  * @apiName LogsByID
  * @apiGroup Logs
  *
@@ -981,7 +1088,7 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
  * @apiSuccess {String} userAgent User Browser Agent Details.
  * @apiSuccess {String} action Action performed by User.
  */
-  app.get('/v2.0/log/:id', jwtCheck, adminCheck, (req, res) => {
+  app.get('/v3.0/log/:id', jwtCheck, adminCheck, (req, res) => {
     Log.findById(req.params.id, (err, log) => {
       if (err) {
         return res.status(500).send({message: err.message});
@@ -995,8 +1102,8 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
 
 
   /**
- * @api {get} /v2.0/capacity/:id Request Venue Capacity By ID
- * @apiVersion 2.0.1
+ * @api {get} /v3.0/capacity/:id Request Venue Capacity By ID
+ * @apiVersion 3.0.1
  * @apiName GetCapacity
  * @apiGroup Capacities
  *
@@ -1010,7 +1117,7 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
  * @apiSuccess {Number} remaining Remaining capcity of venue.
  * @apiSuccess {String} createdAt Timestamp of User creation.
  */
-  app.get('/v2.0/capacity/:num', (req, res) => {
+  app.get('/v3.0/capacity/:num', (req, res) => {
     const num = req.params.num;
     const capacitySeed = faker.random.number();
     faker.seed(parseInt(num, 10));
@@ -1032,8 +1139,8 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
 
 
   /**
-   * @api {get} /v2.0/contacts/ Request Contacts
-   * @apiVersion 2.0.1
+   * @api {get} /v3.0/contacts/ Request Contacts
+   * @apiVersion 3.0.1
    * @apiName GetContacts
    * @apiGroup Contacts
    *
@@ -1041,7 +1148,7 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
    *
    * @apiFailure {String} message 'Failed to create new contact.'
    */
-  app.get('/v2.0/contacts', (req, res) => {
+  app.get('/v3.0/contacts', (req, res) => {
     db.collection(CONTACTS_COLLECTION).find({}).toArray((err, docs) => {
       if (err) {
         handleError(res, err.message, 'Failed to get contacts.');
@@ -1052,8 +1159,8 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
   });
 
   /**
- * @api {post} /v2.0/contacts/ Create New Contact
- * @apiVersion 2.0.1
+ * @api {post} /v3.0/contacts/ Create New Contact
+ * @apiVersion 3.0.1
  * @apiName PostContacts
  * @apiGroup Contacts
  *
@@ -1063,7 +1170,7 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
  *
  * @apiFailure {String} message 'Failed to create new contact.'
  */
-  app.post('/v2.0/contacts', (req, res) => {
+  app.post('/v3.0/contacts', (req, res) => {
     const newContact = req.body;
     newContact.createDate = new Date();
 
@@ -1082,8 +1189,8 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
 
 
   /**
- * @api {get} /v2.0/events/ list of public events starting in the future
- * @apiVersion 2.0.1
+ * @api {get} /v3.0/events/ list of public events starting in the future
+ * @apiVersion 3.0.1
  * @apiName PostContacts
  * @apiGroup Events
  *
@@ -1091,7 +1198,7 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
  *
  * @apiFailure {String} message 'Failed to create new contact.'
  */
-  app.get('/v2.0/events', (req, res) => {
+  app.get('/v3.0/events', (req, res) => {
     Event.find({viewPublic: true, startDatetime: { $gte: new Date() }},
       _eventListProjection, (err, events) => {
       let eventsArr = [];
@@ -1108,8 +1215,8 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
   });
 
   /**
- * @api {get} /v2.0/events/admin list of all events, public and private (admin only)
- * @apiVersion 2.0.1
+ * @api {get} /v3.0/events/admin list of all events, public and private (admin only)
+ * @apiVersion 3.0.1
  * @apiName PostContacts
  * @apiGroup Events
  *
@@ -1118,7 +1225,7 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
  *
  * @apiFailure {String} message 'Failed'
  */
-  app.get('/v2.0/events/admin', jwtCheck, adminCheck, (req, res) => {
+  app.get('/v3.0/events/admin', jwtCheck, adminCheck, (req, res) => {
     Event.find({}, _eventListProjection, (err, events) => {
       let eventsArr = [];
       if (err) {
@@ -1136,8 +1243,8 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
 
 
 /**
- * @api {get} /v2.0/event/:id event by event ID
- * @apiVersion 2.0.1
+ * @api {get} /v3.0/event/:id event by event ID
+ * @apiVersion 3.0.1
  * @apiName GetEventById
  * @apiGroup Events
  *
@@ -1147,7 +1254,7 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
  *
  * @apiFailure {String} message 'Failed'
  */
-  app.get('/v2.0/event/:id', jwtCheck, (req, res) => {
+  app.get('/v3.0/event/:id', jwtCheck, (req, res) => {
     Event.findById(req.params.id, (err, event) => {
       if (err) {
         return res.status(500).send({message: err.message});
@@ -1161,8 +1268,8 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
 
 
 /**
- * @api {get} /v2.0/events/:userId event by user ID
- * @apiVersion 2.0.1
+ * @api {get} /v3.0/events/:userId event by user ID
+ * @apiVersion 3.0.1
  * @apiName GetEventsByUserId
  * @apiGroup Events
  *
@@ -1172,7 +1279,7 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
  *
  * @apiFailure {String} message 'Failed'
  */
-  app.get('/v2.0/events/:userId', jwtCheck, (req, res) => {
+  app.get('/v3.0/events/:userId', jwtCheck, (req, res) => {
     Rsvp.find({userId: req.params.userId}, 'eventId', (err, rsvps) => {
       const _eventIdsArr = rsvps.map(rsvp => rsvp.eventId);
       const _rsvpEventsProjection = 'title startDatetime endDatetime';
@@ -1200,8 +1307,8 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
   });
 
 /**
- * @api {post} /v2.0/event/new Post new event
- * @apiVersion 2.0.1
+ * @api {post} /v3.0/event/new Post new event
+ * @apiVersion 3.0.1
  * @apiName PostEventNew
  * @apiGroup Contacts
  *
@@ -1211,7 +1318,7 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
  *
  * @apiFailure {String} message 'Failed'
  */
-  app.post('/v2.0/event/new', jwtCheck, adminCheck, (req, res) => {
+  app.post('/v3.0/event/new', jwtCheck, adminCheck, (req, res) => {
     Event.findOne({
       title: req.body.title,
       location: req.body.location,
@@ -1241,8 +1348,8 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
 
 
  /**
- * @api {put} /v2.0/event/:id Update Event by Id
- * @apiVersion 2.0.1
+ * @api {put} /v3.0/event/:id Update Event by Id
+ * @apiVersion 3.0.1
  * @apiName PutEventbyId
  * @apiGroup Events
  *
@@ -1252,7 +1359,7 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
  *
  * @apiFailure {String} message 'Failed'
  */
-  app.put('/v2.0/event/:id', jwtCheck, adminCheck, (req, res) => {
+  app.put('/v3.0/event/:id', jwtCheck, adminCheck, (req, res) => {
     Event.findById(req.params.id, (err, event) => {
       if (err) {
         return res.status(500).send({message: err.message});
@@ -1277,8 +1384,8 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
   });
 
 /**
- * @api {delete} /v2.0/event/:id Delete Event by Id
- * @apiVersion 2.0.1
+ * @api {delete} /v3.0/event/:id Delete Event by Id
+ * @apiVersion 3.0.1
  * @apiName DeleteEventById
  * @apiGroup Events
  *
@@ -1288,7 +1395,7 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
  *
  * @apiFailure {String} message 'Failed'
  */
-  app.delete('/v2.0/event/:id', jwtCheck, adminCheck, (req, res) => {
+  app.delete('/v3.0/event/:id', jwtCheck, adminCheck, (req, res) => {
     Event.findById(req.params.id, (err, event) => {
       if (err) {
         return res.status(500).send({message: err.message});
@@ -1314,8 +1421,8 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
 
 
  /**
- * @api {get} /v2.0/event/:eventId/rsvps RSVPs by event ID
- * @apiVersion 2.0.1
+ * @api {get} /v3.0/event/:eventId/rsvps RSVPs by event ID
+ * @apiVersion 3.0.1
  * @apiName PostContacts
  * @apiGroup Contacts
  *
@@ -1325,7 +1432,7 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
  *
  * @apiFailure {String} message 'Failed'
  */
-  app.get('/v2.0/event/:eventId/rsvps', jwtCheck, (req, res) => {
+  app.get('/v3.0/event/:eventId/rsvps', jwtCheck, (req, res) => {
     Rsvp.find({eventId: req.params.eventId}, (err, rsvps) => {
       let rsvpsArr = [];
       if (err) {
@@ -1343,8 +1450,8 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
 
 
 /**
- * @api {post} /v2.0/rsvp/new Create New RSVP
- * @apiVersion 2.0.1
+ * @api {post} /v3.0/rsvp/new Create New RSVP
+ * @apiVersion 3.0.1
  * @apiName PostRsvpNew
  * @apiGroup RSVPs
  *
@@ -1352,7 +1459,7 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
  *
  * @apiFailure {String} message 'Failed'
  */
-  app.post('/v2.0/rsvp/new', jwtCheck, (req, res) => {
+  app.post('/v3.0/rsvp/new', jwtCheck, (req, res) => {
     Rsvp.findOne({eventId: req.body.eventId, userId: req.body.userId}, (err, existingRsvp) => {
       if (err) {
         return res.status(500).send({message: err.message});
@@ -1380,8 +1487,8 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
 
 // PUT (edit) an existing RSVP
 /**
- * @api {put} /v2.0/rsvp/:id Edit an existing RSVP
- * @apiVersion 2.0.1
+ * @api {put} /v3.0/rsvp/:id Edit an existing RSVP
+ * @apiVersion 3.0.1
  * @apiName PutRSVP
  * @apiGroup RSVPs
  *
@@ -1391,7 +1498,7 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
  *
  * @apiFailure {String} message 'Failed'
  */
-  app.put('/v2.0/rsvp/:id', jwtCheck, (req, res) => {
+  app.put('/v3.0/rsvp/:id', jwtCheck, (req, res) => {
     Rsvp.findById(req.params.id, (err, rsvp) => {
       if (err) {
         return res.status(500).send({message: err.message});
@@ -1417,8 +1524,8 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
   });
 
   /**
- * @api {get} /v2.0/checklists/ list of public checklists starting in the future
- * @apiVersion 2.0.1
+ * @api {get} /v3.0/checklists/ list of public checklists starting in the future
+ * @apiVersion 3.0.1
  * @apiName GetChecklists
  * @apiGroup Checklists
  *
@@ -1426,7 +1533,7 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
  *
  * @apiFailure {String} message 'Failed to create new contact.'
  */
-  app.get('/v2.0/checklists', (req, res) => {
+  app.get('/v3.0/checklists', (req, res) => {
     Checklist.find({viewPublic: true, startDatetime: { $lte: new Date() }},
       _checklistListProjection, (err, checklists) => {
       let checklistArr = [];
@@ -1444,8 +1551,8 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
 
 
   /**
- * @api {post} /v2.0/checklists/ Create New Checklist
- * @apiVersion 2.0.1
+ * @api {post} /v3.0/checklists/ Create New Checklist
+ * @apiVersion 3.0.1
  * @apiName PostChecklist
  * @apiGroup Checklists
  *
@@ -1455,7 +1562,7 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
  *
  * @apiFailure {String} message 'Failed to create new checklist.'
  */
-  app.post('/v2.0/checklist', (req, res) => {
+  app.post('/v3.0/checklist', (req, res) => {
     const newChecklist = req.body;
     newChecklist.createDate = new Date();
     newChecklist.createdAt = newChecklist.createDate;
@@ -1474,8 +1581,8 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
   });
 
   /**
- * @api {get} /v2.0/checklists/admin list of all checklists, public and private (admin only)
- * @apiVersion 2.0.1
+ * @api {get} /v3.0/checklists/admin list of all checklists, public and private (admin only)
+ * @apiVersion 3.0.1
  * @apiName GetChecklists
  * @apiGroup Checklists
  *
@@ -1484,7 +1591,7 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
  *
  * @apiFailure {String} message 'Failed'
  */
-  app.get('/v2.0/checklists/admin', jwtCheck, adminCheck, (req, res) => {
+  app.get('/v3.0/checklists/admin', jwtCheck, adminCheck, (req, res) => {
     Checklist.find({}, _checklistListProjection, (err, checklists) => {
       let checklistsArr = [];
       if (err) {
@@ -1501,8 +1608,8 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
 
 
   /**
- * @api {get} /v2.0/checklists/:id Request Checklist By Venue ID
- * @apiVersion 2.0.1
+ * @api {get} /v3.0/checklists/:id Request Checklist By Venue ID
+ * @apiVersion 3.0.1
  * @apiName GetChecklistByVenueID
  * @apiGroup Checklists
  *
@@ -1517,7 +1624,7 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
  * @apiSuccess {String} createdAt Timestamp of Request.
  * @apiSuccess {Number} createdBy User ID of generating Checklist.
  */
- app.get('/v2.0/checklist/:id', jwtCheck, (req, res) => {
+ app.get('/v3.0/checklist/:id', jwtCheck, (req, res) => {
     Checklist.findById(req.params.id, (err, checklist) => {
       if (err) {
         return res.status(500).send({message: err.message});
@@ -1536,8 +1643,8 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
 
 
   /**
- * @api {get} /v2.0/checklists/:id Request Checklist By Venue ID
- * @apiVersion 2.0.1
+ * @api {get} /v3.0/checklists/:id Request Checklist By Venue ID
+ * @apiVersion 3.0.1
  * @apiName GetChecklistByVenueID
  * @apiGroup Checklists
  *
@@ -1552,7 +1659,7 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
  * @apiSuccess {String} createdAt Timestamp of Request.
  * @apiSuccess {Number} createdBy User ID of generating Checklist.
  */
-  app.get('/v2.0/checklists/:num', (req, res) => {
+  app.get('/v3.0/checklists/:num', (req, res) => {
     const num = req.params.num;
     const checklists = [];
     faker.seed(parseInt(num, 10));
@@ -1574,8 +1681,8 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
   });
 
   /**
- * @api {get} /v2.0/checklists/:id/recent/ Request Recent Checklist By Venue ID From Past 7 Days
- * @apiVersion 2.0.1
+ * @api {get} /v3.0/checklists/:id/recent/ Request Recent Checklist By Venue ID From Past 7 Days
+ * @apiVersion 3.0.1
  * @apiName GetRecentChecklists
  * @apiGroup Checklists
  *
@@ -1592,7 +1699,7 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
  * @apiSuccess {String} createdAt Timestamp of Request.
  * @apiSuccess {Number} createdBy User ID of generating Checklist.
  */
-  app.get('/v2.0/checklists/:num/recent/', (req, res) => {
+  app.get('/v3.0/checklists/:num/recent/', (req, res) => {
     const num = req.params.num;
     const checklists = [];
     faker.seed(parseInt(num, 10));
@@ -1619,9 +1726,9 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
   });
 
   /**
- * @api {get} /v2.0/checklists/:id/from/:month/:day/:year/to/:month/:day/:year/
+ * @api {get} /v3.0/checklists/:id/from/:month/:day/:year/to/:month/:day/:year/
   Request Recent Checklist By Venue ID And Date Range
- * @apiVersion 2.0.1
+ * @apiVersion 3.0.1
  * @apiName GetChecklistsDateRange
  * @apiGroup Checklists
  *
@@ -1638,7 +1745,7 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
  * @apiSuccess {String} createdAt Timestamp of Request.
  * @apiSuccess {Number} createdBy User ID of generating Checklist.
  */
-  app.get('/v2.0/checklists/:num/from/:from_month/:from_day/:from_year/to/', (req, res) => {
+  app.get('/v3.0/checklists/:num/from/:from_month/:from_day/:from_year/to/', (req, res) => {
     const num = req.params.num;
     const fromMonth = req.params.from_month;
     const fromDay = req.params.from_day;
@@ -1673,8 +1780,8 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
   });
 
   /**
- * @api {get} /v2.0/checklist/:id Request Checklist By ID
- * @apiVersion 2.0.1
+ * @api {get} /v3.0/checklist/:id Request Checklist By ID
+ * @apiVersion 3.0.1
  * @apiName GetChecklistByID
  * @apiGroup Checklists
  *
@@ -1689,7 +1796,7 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
  * @apiSuccess {String} createdAt Timestamp of Checklist.
  * @apiSuccess {Number} createdBy User ID of generating Checklist.
  */
-  app.get('/v2.0/checklist/:num', (req, res) => {
+  app.get('/v3.0/checklist/:num', (req, res) => {
     const num = req.params.num;
     faker.seed(parseInt(num, 10));
     const venueID = faker.random.number();
@@ -1726,8 +1833,8 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
   });
 
 /**
- * @api {post} /v2.0/checklist/new Post new checklist
- * @apiVersion 2.0.1
+ * @api {post} /v3.0/checklist/new Post new checklist
+ * @apiVersion 3.0.1
  * @apiName PostChecklistNew
  * @apiGroup Checklists
  *
@@ -1735,7 +1842,7 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
  *
  * @apiFailure {String} message 'Failed'
  */
-  app.post('/v2.0/checklist/new', jwtCheck, adminCheck, (req, res) => {
+  app.post('/v3.0/checklist/new', jwtCheck, adminCheck, (req, res) => {
     Checklist.findOne({
       title: req.body.title,
       location: req.body.location,
@@ -1789,8 +1896,8 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
   });
 
   /**
- * @api {get} /v2.0/checklist/:id/pdf/ Request Checklist PDF By ID
- * @apiVersion 2.0.1
+ * @api {get} /v3.0/checklist/:id/pdf/ Request Checklist PDF By ID
+ * @apiVersion 3.0.1
  * @apiName GetChecklistPDFByID
  * @apiGroup Checklists
  *
@@ -1798,7 +1905,7 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
  *
  * @apiSuccess {File} PDF
  */
-  app.get('/v2.0/checklist/:id/pdf/', (req, res) => {
+  app.get('/v3.0/checklist/:id/pdf/', (req, res) => {
     Checklist.findById(req.params.id, (err, checklist) => {
       if (err) {
         return res.status(500).send({message: err.message});
@@ -1832,7 +1939,7 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
     const hummus = require('hummus');
 
     const pdfWriter = hummus.createWriterToModify(
-      new hummus.PDFRStreamForFile('./v2.0/assets/pdfs/fp-buildingsafetychecklist.pdf'),
+      new hummus.PDFRStreamForFile('./v3.0/assets/pdfs/fp-buildingsafetychecklist.pdf'),
       new hummus.PDFStreamForResponse(res),
     );
 
@@ -1841,21 +1948,21 @@ app.get('/v2.0/logs', jwtCheck, adminCheck, (req, res) => {
     const x2 = 540;
     let q = 0;
     const answerFont = ({
-      font: pdfWriter.getFontForFile('./v2.0/assets/fonts/arial.ttf'),
+      font: pdfWriter.getFontForFile('./v3.0/assets/fonts/arial.ttf'),
       size: 10,
       colorspace: 'gray',
       color: 0x00,
     });
 
     const smallFont = ({
-      font: pdfWriter.getFontForFile('./v2.0/assets/fonts/arial.ttf'),
+      font: pdfWriter.getFontForFile('./v3.0/assets/fonts/arial.ttf'),
       size: 8,
       colorspace: 'gray',
       color: 0x00,
     });
 
     const verySmallFont = ({
-      font: pdfWriter.getFontForFile('./v2.0/assets/fonts/arial.ttf'),
+      font: pdfWriter.getFontForFile('./v3.0/assets/fonts/arial.ttf'),
       size: 6,
       colorspace: 'gray',
       color: 0x00,

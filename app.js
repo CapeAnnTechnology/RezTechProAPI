@@ -1,12 +1,15 @@
 const express = require('express');
 // const path = require('path');
 const bodyParser = require('body-parser');
-const routesLegacy = require('./v1.0/routes/routes.js');
-const routes = require('./v2.0/routes/routes.js');
+// const routesLegacy = require('./v1.0/routes/routes.js');
+
+const routes = require('./v3.0/routes/routes.js');
 
 const mongoose = require('mongoose');
 const methodOverride = require('method-override');
 const cors = require('cors');
+
+const socketIO = require('socket.io');
 
 // const version = '2.0.1';
 
@@ -75,13 +78,35 @@ mongodb.MongoClient.connect(process.env.MONGODB_URI, (err, client) => {
   console.log('Database connection ready');
 
   routes(app, db);
-  routesLegacy(app, db);
+  // routesLegacy(app, db);
 
 
   // Initialize the app.
-  app.listen(process.env.PORT || 3000, () => {
+  const server = app.listen(process.env.PORT || 3000, () => {
     console.log('App now running on port', port);
   });
+
+  const io = socketIO(server);
+
+  // io.on('connection', (socket) => {
+  //   console.log('Client connected');
+  //   socket.on('disconnect', () => console.log('Client disconnected'));
+  // });
+
+  // setInterval(() => io.emit('time', new Date().toTimeString()), 1000);
+
+  io.on('connect', (socket) => {
+            console.log('Connected client on port %s.', process.env.PORT || 3000);
+            socket.on('message', (m) => {
+                console.log('[server](message): %s', JSON.stringify(m));
+                io.emit('message', m);
+            });
+
+            socket.on('disconnect', () => {
+                console.log('Client disconnected');
+            });
+        });
+
 });
 
 // References:
