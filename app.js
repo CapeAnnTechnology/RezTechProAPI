@@ -95,17 +95,34 @@ mongodb.MongoClient.connect(process.env.MONGODB_URI, (err, client) => {
 
   // setInterval(() => io.emit('time', new Date().toTimeString()), 1000);
 
-  io.on('connect', (socket) => {
-            console.log('Connected client on port %s.', process.env.PORT || 3000);
-            socket.on('message', (m) => {
-                console.log('[server](message): %s', JSON.stringify(m));
-                io.emit('message', m);
-            });
+  let count = 0;
 
-            socket.on('disconnect', () => {
-                console.log('Client disconnected');
-            });
-        });
+  io.on('connect', (socket) => {
+      console.log('Connected client on port %s.', process.env.PORT || 3000);
+
+      socket.on('message', (m) => {
+          console.log('[server](message): %s', JSON.stringify(m));
+          io.emit('message', m);
+      });
+
+      socket.on('guest', (g) => {
+          console.log('[server](guest): %s', JSON.stringify(g));
+          console.log(g.action);
+          let message = {};
+          if(g.action == 3){
+            count = count + 1;
+            message = {from: g.from, content: 'User Entered, count: '+count};
+          }else if(g.action == 4){
+            count = Math.max((count - 1),0);
+            message = {from: g.from, content: 'User Exited, count: '+count};
+          }
+          io.emit('message', message);
+      });
+
+      socket.on('disconnect', () => {
+          console.log('Client disconnected');
+      });
+  });
 
 });
 
