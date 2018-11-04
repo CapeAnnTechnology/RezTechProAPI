@@ -11,6 +11,9 @@ const cors = require('cors');
 
 const socketIO = require('socket.io');
 
+const Guest = require('./v3.0/models/Guest');
+const Room = require('./v3.0/models/Room');
+
 // const version = '2.0.1';
 
 /*
@@ -54,8 +57,8 @@ let db;
 
 const app = express();
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json({limit: "50mb"}));
+app.use(bodyParser.urlencoded({ limit: "50mb", extended: false }));
 app.use(methodOverride('X-HTTP-Method-Override'));
 app.use(cors());
 
@@ -97,8 +100,13 @@ mongodb.MongoClient.connect(process.env.MONGODB_URI, (err, client) => {
 
   let count = 0;
 
+  let rooms = new Array();
+
   io.on('connect', (socket) => {
       console.log('Connected client on port %s.', process.env.PORT || 3000);
+
+      // console.log(rooms);
+      // io.emit('rooms', rooms);
 
       socket.on('message', (m) => {
           console.log('[server](message): %s', JSON.stringify(m));
@@ -107,16 +115,33 @@ mongodb.MongoClient.connect(process.env.MONGODB_URI, (err, client) => {
 
       socket.on('guest', (g) => {
           console.log('[server](guest): %s', JSON.stringify(g));
-          console.log(g.action);
-          let message = {};
-          if(g.action == 3){
-            count = count + 1;
-            message = {from: g.from, content: 'User Entered, count: '+count};
-          }else if(g.action == 4){
-            count = Math.max((count - 1),0);
-            message = {from: g.from, content: 'User Exited, count: '+count};
+          // console.log(g.action);
+          let data = 0;
+          if( undefined !== rooms[g.roomId] && undefined !== rooms[g.roomId].occupancy ){
+            count = rooms[g.roomId].occupancy;
+          }else{
+            count = 0;
           }
-          io.emit('message', message);
+          if(g.action == 3){ // Guest Entered
+            count = parseInt(""+count) + 1;
+            data = 1;
+          }else if(g.action == 4){ // Guest Exited
+            count = Math.max((parseInt(""+count) - 1),0);
+            data = -1;
+          }
+          const room = new Room({
+            _id: g.roomId,
+            capacity: g.capacity,
+            occupancy: count
+          });
+
+          // If child is set, change capacity on parent
+          // rooms[g.parent] = occupancy - 1
+          // io.emit('room', roomParent);
+
+          io.emit('room', room);
+          // store room into object
+          rooms[g.roomId] = room;
       });
 
       socket.on('disconnect', () => {

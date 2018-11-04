@@ -18,6 +18,9 @@ const CHECKLISTS_COLLECTION = 'checklists';
 const Authz = require('authz-extension-api');
 const authz = new Authz();
 
+// const ObjectId = require('mongodb').ObjectId;
+// const ObjectID = require('mongodb').ObjectID;
+const {ObjectId} = require('mongodb');
 
 const jwt = require('express-jwt');
 const jwks = require('jwks-rsa');
@@ -32,6 +35,8 @@ const Log = require('../models/Log');
 const Rsvp = require('../models/Rsvp');
 const User = require('../models/User');
 const Venue = require('../models/Venue');
+const Room = require('../models/Room');
+const Door = require('../models/Door');
 
 const appRouter = function (app, db) {
 /** ***
@@ -177,9 +182,11 @@ const appRouter = function (app, db) {
 
  const _eventListProjection = 'title startDatetime endDatetime viewPublic';
  const _checklistListProjection = 'title startDatetime endDatetime viewPublic';
- const _businessListProjection = 'title location phoneNumber faxNumber viewPublic comments';
- const _venueListProjection = 'title location phoneNumber viewPublic';
+ const _businessListProjection = 'title location phoneNumber faxNumber viewPublic comments venues';
+ const _venueListProjection = 'title location phoneNumber viewPublic rooms';
  const _logListProjection = 'action additional fileName ipAddress level lineNumber message referrer timestamp userAgent viewPublic';
+ const _roomListProjection = 'title venueId capacity childOf siblingOf parentOf doors';
+ const _doorListProjection = 'title roomId';
 
 /**
  * @api {get} /v3.0/ Welcome Message
@@ -338,6 +345,7 @@ const appRouter = function (app, db) {
  * @apiSuccess {String} lastname  Lastname of the User.
  */
   app.get('/v3.0/businesses', (req, res) => {
+
     Business.find({}, _businessListProjection, (err, businesses) => {
       let businessArr = [];
       if (err) {
@@ -351,6 +359,47 @@ const appRouter = function (app, db) {
       res.send(businessArr);
     });
   });
+
+  // if ( ! ObjectId.isValid(req.params.venueId) ) {
+  //       return res.status(500).send({message: "Invalid Venue Id"});
+  //     }
+
+
+/**
+ * @api {get} /v3.0/business/ Request Business By _ids
+ * @apiVersion 2.0.3
+ * @apiName GetBusiness
+ * @apiGroup Businesses
+ *
+ * @apiSuccess {String} firstname Firstname of the User.
+ * @apiSuccess {String} lastname  Lastname of the User.
+ */
+  app.post('/v3.0/businesses', (req, res) => {
+    let ids = new Array();
+
+    // console.log(req.body.ids);
+
+    req.body.ids.forEach(function (id) {
+      if ( ObjectId.isValid(id) ) {
+        ids.push(ObjectId(id));
+      }
+    })
+
+    Business.find({_id: {$in: ids}  }, _businessListProjection, (err, businesses) => {
+      let businessArr = [];
+      if (err) {
+        return res.status(500).send({message: err.message});
+      }
+      if (businesses) {
+        businesses.forEach(business => {
+          businessArr.push(business);
+        });
+      }
+      res.send(businessArr);
+    });
+  });
+
+// db.getCollection('businesses').find({_id: {$in: [ObjectId("5bb79a35318cc53701524810")]}})
 
   /**
  * @api {post} /v3.0/business/new Create New Business
@@ -555,6 +604,41 @@ const appRouter = function (app, db) {
 
 
 /**
+ * @api {post} /v3.0/venues/ Request Venues By _ids
+ * @apiVersion 2.0.3
+ * @apiName PostVenues
+ * @apiGroup Venues
+ *
+ * @apiSuccess {Number} id ID of the Venue.
+ * @apiSuccess {Number} venueID ID of the Venue.
+ * @apiSuccess {String} createdAt Timestamp of User creation.
+ * @apiSuccess {Number} createdBy User ID of generating User.
+ */
+  app.post('/v3.0/venues', (req, res) => {
+    let ids = new Array();
+
+    req.body.ids.forEach(function (id) {
+      if ( ObjectId.isValid(id) ) {
+        ids.push(ObjectId(id));
+      }
+    })
+
+    Venue.find({ _id: { $in: ids }  }, _venueListProjection, (err, venues) => {
+      let venueArr = [];
+      if (err) {
+        return res.status(500).send({message: err.message});
+      }
+      if (venues) {
+        venues.forEach(venue => {
+          venueArr.push(venue);
+        });
+      }
+      res.send(venueArr);
+    });
+  });
+
+
+/**
  * @api {get} /v3.0/business/:businessId/venues Venues by business ID
  * @apiVersion 3.0.1
  * @apiName PostContacts
@@ -593,7 +677,7 @@ const appRouter = function (app, db) {
  *
  * @apiFailure {String} message 'Failed'
  */
-  app.get('/v3.0/venue/:venueId/inspections', jwtCheck, adminCheck, (req, res) => {
+  app.get('/v3.0/venue/:venueId/inspections',  (req, res) => { // jwtCheck, adminCheck,
     Inspection.find({venueId: req.params.venueId}, (err, inspections) => {
       let inspectionsArr = [];
       if (err) {
@@ -607,6 +691,189 @@ const appRouter = function (app, db) {
       res.send(inspectionsArr);
     })
     .populate('userId')
+    .populate('venueId');
+  });
+
+/**
+ * @api {get} /v3.0/venue/:venueId/rooms Rooms by venue ID
+ * @apiVersion 3.0.1
+ * @apiName GetVenueRooms
+ * @apiGroup Venues
+ *
+ * @apiParam {Number} id Venue ID
+ *
+ * @apiSuccess {Object} Rooms
+ *
+ * @apiFailure {String} message 'Failed'
+ */
+  app.get('/v3.0/venue/:venueId/rooms', jwtCheck, (req, res) => { // jwtCheck, adminCheck,
+    // const venueId = new ObjectID(req.params.venueId);
+
+    if ( ! ObjectId.isValid(req.params.venueId) ) {
+        return res.status(500).send({message: "Invalid Venue Id"});
+      }
+
+    const venueId = ObjectId(req.params.venueId);
+
+    // venueId: ObjectId("5b33cc377039f3f85161a2c1")
+    Room.find({venueId: venueId}, (err, rooms) => { //venueId: venueId
+      let roomsArr = [];
+      if (err) {
+        return res.status(500).send({message: err.message});
+      }
+      // console.log(rooms);
+      if (rooms) {
+        rooms.forEach(room => {
+          roomsArr.push(room);
+        });
+      }
+      res.send(roomsArr);
+    })
+    // .populate('userId')
+    .populate('venueId');
+  });
+
+
+/**
+ * @api {post} /v3.0/venues/ Request Venues By _ids
+ * @apiVersion 2.0.3
+ * @apiName PostVenues
+ * @apiGroup Venues
+ *
+ * @apiSuccess {Number} id ID of the Venue.
+ * @apiSuccess {Number} venueID ID of the Venue.
+ * @apiSuccess {String} createdAt Timestamp of User creation.
+ * @apiSuccess {Number} createdBy User ID of generating User.
+ */
+  app.post('/v3.0/rooms', (req, res) => {
+    let ids = new Array();
+
+    req.body.ids.forEach(function (id) {
+      if ( ObjectId.isValid(id) ) {
+        ids.push(ObjectId(id));
+      }
+    })
+
+    Room.find({ venueId: { $in: ids }  }, _roomListProjection, (err, rooms) => {
+      let roomArr = [];
+      if (err) {
+        return res.status(500).send({message: err.message});
+      }
+      if (rooms) {
+        rooms.forEach(room => {
+          roomArr.push(room);
+        });
+      }
+      res.send(roomArr);
+    }).populate('venueId');
+  });
+
+/**
+ * @api {post} /v3.0/doors/ Request Venues By _ids
+ * @apiVersion 2.0.3
+ * @apiName PostDoors
+ * @apiGroup Doors
+ *
+ * @apiSuccess {Number} id ID of the Venue.
+ * @apiSuccess {Number} venueID ID of the Venue.
+ * @apiSuccess {String} createdAt Timestamp of User creation.
+ * @apiSuccess {Number} createdBy User ID of generating User.
+ */
+  app.post('/v3.0/doors', (req, res) => {
+    let ids = new Array();
+
+    req.body.ids.forEach(function (id) {
+      if ( ObjectId.isValid(id) ) {
+        ids.push(ObjectId(id));
+      }
+    })
+
+    Business.find({ '_id': { $in: ids }  }, _businessListProjection, (err, businesses) => {
+      let businessArr = [];
+      if (err) {
+        return res.status(500).send({message: err.message});
+      }
+      // console.log(businesses);
+      if (businesses) {
+        businesses.forEach(business => {
+          businessArr.push(business);
+        });
+      }
+      res.send(businessArr);
+    })
+    .populate({path: 'venues', model: 'Venue', populate: { path: 'rooms', model: 'Room', populate: { path: 'doors', model: 'Door' } }});
+  });
+
+/**
+ * @api {get} /v3.0/room/:roomId/doors Doors by room ID
+ * @apiVersion 3.0.1
+ * @apiName GetRoomDoors
+ * @apiGroup Rooms
+ *
+ * @apiParam {Number} id Room ID
+ *
+ * @apiSuccess {Object} Doors
+ *
+ * @apiFailure {String} message 'Failed'
+ */
+  app.get('/v3.0/room/:roomId/doors',  (req, res) => { // jwtCheck, adminCheck,
+    // const venueId = new ObjectID(req.params.venueId);
+
+    if ( ! ObjectId.isValid(req.params.roomId) ) {
+        return res.status(500).send({message: "Invalid Room Id"});
+      }
+
+    const roomId = ObjectId(req.params.roomId);
+
+    // venueId: ObjectId("5b33cc377039f3f85161a2c1")
+    Door.find({roomId: roomId}, (err, doors) => { //roomId: roomId
+      let doorsArr = [];
+      if (err) {
+        return res.status(500).send({message: err.message});
+      }
+      // console.log(rooms);
+      if (doors) {
+        doors.forEach(door => {
+          doorsArr.push(door);
+        });
+      }
+      res.send(doorsArr);
+    })
+    // .populate('userId')
+    .populate('roomId');
+  });
+
+
+/**
+ * @api {get} /v3.0/room/:roomId Rooms by room ID
+ * @apiVersion 3.0.2
+ * @apiName GetRoom
+ * @apiGroup Rooms
+ *
+ * @apiParam {Number} id Room ID
+ *
+ * @apiSuccess {Object} Rooms
+ *
+ * @apiFailure {String} message 'Failed'
+ */
+  app.get('/v3.0/room/:id', (req, res) => { // jwtCheck, adminCheck,
+    // const venueId = new ObjectID(req.params.venueId);
+
+    if ( ! ObjectId.isValid(req.params.id) ) {
+        return res.status(500).send({message: "Invalid Room Id"});
+      }
+
+    const roomId = ObjectId(req.params.id);
+
+    Room.findById(roomId, (err, room) => {
+      if (err) {
+        return res.status(500).send({message: err.message});
+      }
+      if (!room) {
+        return res.status(400).send({message: 'Room not found.'});
+      }
+      res.send(room);
+    })
     .populate('venueId');
   });
 
@@ -1279,7 +1546,7 @@ app.get('/v3.0/logs', jwtCheck, adminCheck, (req, res) => {
  *
  * @apiFailure {String} message 'Failed'
  */
-  app.get('/v3.0/events/:userId', jwtCheck, (req, res) => {
+  app.get('/v3.0/events/:userId',  (req, res) => { // jwtCheck,
     Rsvp.find({userId: req.params.userId}, 'eventId', (err, rsvps) => {
       const _eventIdsArr = rsvps.map(rsvp => rsvp.eventId);
       const _rsvpEventsProjection = 'title startDatetime endDatetime';
