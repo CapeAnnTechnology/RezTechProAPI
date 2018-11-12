@@ -699,7 +699,7 @@ const appRouter = function (app, db) {
  *
  * @apiFailure {String} message 'Failed'
  */
-  app.get('/v3.0/venue/:venueId/rooms', jwtCheck, (req, res) => { // jwtCheck, adminCheck,
+  app.get('/v3.0/venue/:venueId/rooms', (req, res) => { // jwtCheck, adminCheck,
     // const venueId = new ObjectID(req.params.venueId);
 
     if ( ! ObjectId.isValid(req.params.venueId) ) {
@@ -723,7 +723,7 @@ const appRouter = function (app, db) {
       res.send(roomsArr);
     })
     // .populate('userId')
-    .populate('venueId');
+    .populate('venueId').populate('doors');
   });
 
 
@@ -868,6 +868,42 @@ const appRouter = function (app, db) {
       res.send(room);
     })
     .populate('venueId');
+  });
+
+
+  /**
+ * @api {get} /v3.0/room/:roomId Rooms by room ID
+ * @apiVersion 3.0.2
+ * @apiName GetRoom
+ * @apiGroup Doors
+ *
+ * @apiParam {Number} id Door ID
+ *
+ * @apiSuccess {Object} Door
+ *
+ * @apiFailure {String} message 'Failed'
+ */
+  app.get('/v3.0/door/:id', (req, res) => { // jwtCheck, adminCheck,
+    // const venueId = new ObjectID(req.params.venueId);
+
+    if ( ! ObjectId.isValid(req.params.id) ) {
+        return res.status(500).send({message: "Invalid Door Id"});
+      }
+
+    const doorId = ObjectId(req.params.id);
+
+    Door.findById(doorId, (err, door) => {
+      if (err) {
+        return res.status(500).send({message: err.message});
+      }
+      if (!door) {
+        return res.status(400).send({message: 'Door not found.'});
+      }
+      res.send(door);
+    })
+    // .populate({path: 'venues', model: 'Venue', populate: { path: 'rooms', model: 'Room', populate: { path: 'doors', model: 'Door' } }});
+    // .populate('roomId');
+    .populate({path: 'roomId', model: 'Room', populate: {path: 'venueId', model: 'Venue'}})
   });
 
 

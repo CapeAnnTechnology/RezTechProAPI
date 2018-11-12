@@ -13,6 +13,7 @@ const roomSchema = new Schema({
   title: { type: String, required: true },
   capacity: String,
   occupancy: String,
+  doors: [{ type: Schema.Types.ObjectId, ref: 'Door' }],
 });
 
 module.exports = mongoose.model('Room', roomSchema);
