@@ -76,32 +76,6 @@ const appRouter = function (app, db) {
     return data;
   }
 
-  function user(num) {
-    faker.seed(parseInt(num, 10));
-    const addressID = faker.random.number();
-    const data = ({
-      id: num,
-      userID: num,
-      prefix: faker.name.prefix(),
-      firstName: faker.name.firstName(),
-      lastName: faker.name.lastName(),
-      suffix: faker.name.suffix(),
-      username: faker.internet.userName(),
-      email: faker.internet.email(),
-      password: faker.internet.password(),
-      certificate: certificate(num),
-      phoneNumber: faker.phone.phoneNumber(),
-      altPhoneNumber: faker.phone.phoneNumber(),
-      addressID,
-      address: address(addressID),
-      createdAt: faker.date.past(),
-      createdBy: faker.random.number(),
-    });
-    return data;
-  }
-
-
-
   function file(num) {
     faker.seed(parseInt(num, 10));
     const data = ({
@@ -305,34 +279,53 @@ const appRouter = function (app, db) {
  * @apiSuccess {String} createdAt Timestamp of User creation.
  * @apiSuccess {Number} createdBy User ID of generating User.
  */
-  app.get('/v3.0/user/:num', (req, res) => {
-    const num = req.params.num;
+  app.get('/v3.0/user/:id', (req, res) => {
+    const id = req.params.id;
+    let _id;
+    if ( !ObjectId.isValid(id) ) {
+        _id = id.split('|')[1];
+      } else {
+        _id = id;
+      }
 
-    if (Number.isFinite(num) && num > 0) {
-      faker.seed(parseInt(num, 10));
-      const addressID = faker.random.number();
-      user = ({
-        id: num,
-        prefix: faker.name.prefix(),
-        firstName: faker.name.firstName(),
-        lastName: faker.name.lastName(),
-        suffix: faker.name.suffix(),
-        username: faker.internet.userName(),
-        email: faker.internet.email(),
-        password: faker.internet.password(),
-        phoneNumber: faker.phone.phoneNumber(),
-        altPhoneNumber: faker.phone.phoneNumber(),
-        addressID,
-        address: address(addressID),
-        createdAt: faker.date.past(),
-        createdBy: faker.random.number(),
+    User.findById(_id, (err, user) => {
+      if (err) {
+        return res.status(500).send({message: err.message});
+      }
+      if (!user) {
+        return res.status(400).send({message: 'User not found.'});
+      }
+      res.send(user);
+    });
+  });
 
+
+  // PUT (edit) an existing event
+  app.put('/v3.0/user/:id', (req, res) => { // jwtCheck,
+    User.findById(req.params.id, (err, user) => {
+      if (err) {
+        return res.status(500).send({message: err.message});
+      }
+      if (!user) {
+        return res.status(400).send({message: 'User not found.'});
+      }
+
+      user.user_metadata = {
+        name: req.body.user_metadata.name,
+        prefix: req.body.user_metadata.prefix,
+        given_name: req.body.user_metadata.given_name,
+        middle_name: req.body.user_metadata.middle_name,
+        family_name: req.body.user_metadata.family_name,
+        suffix: req.body.user_metadata.suffix,
+      };
+
+      user.save(err => {
+        if (err) {
+          return res.status(500).send({message: err.message});
+        }
+        res.send(user);
       });
-
-      res.status(200).send(user);
-    } else {
-      res.status(400).send({ message: 'invalid number supplied' });
-    }
+    });
   });
 
   /**
