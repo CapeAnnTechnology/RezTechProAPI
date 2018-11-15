@@ -38,7 +38,7 @@ const Venue = require('../models/Venue');
 const Room = require('../models/Room');
 const Door = require('../models/Door');
 
-const appRouter = function (app, db) {
+const appRouter = function (app, db, socketRooms) {
 /** ***
 *
 * Static Functions
@@ -714,9 +714,18 @@ const appRouter = function (app, db) {
       if (err) {
         return res.status(500).send({message: err.message});
       }
-      // console.log(rooms);
+      // console.log(socketRooms);
       if (rooms) {
         rooms.forEach(room => {
+          // console.log(room);
+          if( undefined !== socketRooms[room._id] && socketRooms[room._id].occupancy > 0 ){
+            room.occupancy = socketRooms[room._id].occupancy;
+            room.progress = socketRooms[room._id].occupancy / room.capacity;
+            room.progress = Math.floor( 100.0 * room.progress );
+          } else {
+            room.occupancy = 0;
+            room.progress = 0;
+          }
           roomsArr.push(room);
         });
       }
@@ -754,6 +763,14 @@ const appRouter = function (app, db) {
       }
       if (rooms) {
         rooms.forEach(room => {
+          if( undefined !== socketRooms[room._id] && socketRooms[room._id].occupancy > 0 ){
+            room.occupancy = socketRooms[room._id].occupancy;
+            room.progress = socketRooms[room._id].occupancy / room.capacity;
+            room.progress = Math.floor( 100.0 * room.progress );
+          } else {
+            room.occupancy = 0;
+            room.progress = 0;
+          }
           roomArr.push(room);
         });
       }
@@ -865,6 +882,18 @@ const appRouter = function (app, db) {
       if (!room) {
         return res.status(400).send({message: 'Room not found.'});
       }
+      // console.log(room);
+      // console.log(rooms);
+
+      if( undefined !== socketRooms[room._id] && socketRooms[room._id].occupancy > 0 ){
+            room.occupancy = socketRooms[room._id].occupancy;
+            room.progress = socketRooms[room._id].occupancy / room.capacity;
+            room.progress = Math.floor( 100.0 * room.progress );
+          } else {
+            room.occupancy = 0;
+            room.progress = 0;
+          }
+
       res.send(room);
     })
     .populate('venueId');
@@ -899,6 +928,14 @@ const appRouter = function (app, db) {
       if (!door) {
         return res.status(400).send({message: 'Door not found.'});
       }
+      if( undefined !== socketRooms[door.roomId._id] && socketRooms[door.roomId._id].occupancy > 0 ){
+            door.roomId.occupancy = socketRooms[door.roomId._id].occupancy;
+            door.roomId.progress = socketRooms[door.roomId._id].occupancy / door.roomId.capacity;
+            door.roomId.progress = Math.floor( 100.0 * door.roomId.progress );
+          } else {
+            door.roomId.occupancy = 0;
+            door.roomId.progress = 0;
+          }
       res.send(door);
     })
     // .populate({path: 'venues', model: 'Venue', populate: { path: 'rooms', model: 'Room', populate: { path: 'doors', model: 'Door' } }});

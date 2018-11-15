@@ -49,6 +49,8 @@ let db;
 // var legacy = express.Router();
 // var current = express.Router();
 
+let socketRooms = new Array();
+
 /*
  |--------------------------------------
  | App
@@ -80,7 +82,7 @@ mongodb.MongoClient.connect(process.env.MONGODB_URI, (err, client) => {
   db = client.db(process.env.MONGODB_DB);
   console.log('Database connection ready');
 
-  routes(app, db);
+  routes(app, db, socketRooms);
   // routesLegacy(app, db);
 
 
@@ -100,8 +102,6 @@ mongodb.MongoClient.connect(process.env.MONGODB_URI, (err, client) => {
 
   let count = 0;
 
-  let rooms = new Array();
-
   io.on('connect', (socket) => {
       console.log('Connected client on port %s.', process.env.PORT || 3000);
 
@@ -117,8 +117,8 @@ mongodb.MongoClient.connect(process.env.MONGODB_URI, (err, client) => {
           console.log('[server](guest): %s', JSON.stringify(g));
           // console.log(g.action);
           let data = 0;
-          if( undefined !== rooms[g.roomId] && undefined !== rooms[g.roomId].occupancy ){
-            count = rooms[g.roomId].occupancy;
+          if( undefined !== socketRooms[g.roomId] && undefined !== socketRooms[g.roomId].occupancy ){
+            count = socketRooms[g.roomId].occupancy;
           }else{
             count = 0;
           }
@@ -141,7 +141,7 @@ mongodb.MongoClient.connect(process.env.MONGODB_URI, (err, client) => {
 
           io.emit('room', room);
           // store room into object
-          rooms[g.roomId] = room;
+          socketRooms[g.roomId] = room;
       });
 
       socket.on('disconnect', () => {
