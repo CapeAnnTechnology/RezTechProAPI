@@ -6,6 +6,7 @@ const bodyParser = require('body-parser');
 const routes = require('./v3.0/routes/routes.js');
 
 const mongoose = require('mongoose');
+const {ObjectId} = require('mongodb');
 const methodOverride = require('method-override');
 const cors = require('cors');
 
@@ -105,6 +106,9 @@ mongodb.MongoClient.connect(process.env.MONGODB_URI, (err, client) => {
   io.on('connect', (socket) => {
       console.log('Connected client on port %s.', process.env.PORT || 3000);
 
+      // console.log("ip: "+socket.request.connection.remoteAddress);
+      // console.log("user-agent: "+socket.request.headers['user-agent']);
+
       // console.log(rooms);
       // io.emit('rooms', rooms);
 
@@ -138,6 +142,37 @@ mongodb.MongoClient.connect(process.env.MONGODB_URI, (err, client) => {
           // If child is set, change capacity on parent
           // rooms[g.parent] = occupancy - 1
           // io.emit('room', roomParent);
+
+
+          // const guestSchema = new Schema({
+          //   roomId: { type: Schema.Types.ObjectId, ref: 'Room', required: true },
+          //   doorId: { type: Schema.Types.ObjectId, ref: 'Door', required: true },
+          //   timestamp: { type: Date, required: true },
+          //   data: { type: String, required: true },
+          //   count: { type: String, required: true },
+          //   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+          //   action: { type: String, required: true },
+          //   additional: [],
+          // });
+
+          const guest = new Guest({
+            roomId: g.roomId,
+            doorId: g.doorId,
+            timestamp: new Date(),
+            data: data,
+            count: count,
+            userId: ObjectId("5b36ae40215f4e0700b94870"),
+            action: g.action,
+            additional: [],
+            ipAddress: socket.request.connection.remoteAddress,
+            userAgent: socket.request.headers['user-agent'],
+          });
+          guest.save((err) => {
+            if (err) {
+              // return res.status(500).send({message: err.message});
+              console.log({message: err.message});
+            }
+          });
 
           io.emit('room', room);
           // store room into object
